@@ -96,7 +96,7 @@ A modern, lightweight Windows desktop application for comprehensive network diag
 
 ### Option 1: Portable Release (Recommended)- Clean, organized display
 
-1. Download the latest `NetworkCheck-vX.X.X-Portable.zip` from [Releases](https://github.com/MadAreYou/Network_Check_app/releases)
+1. Download the latest `NetworkCheck-vX.X.X-Portable.zip` from [Releases](https://github.com/MadAreYou/Network_Check_app/tree/main/releases)
 
    > **Note:** No releases yet! First release coming soon. In the meantime, use Option 2 below.If the `librespeed-cli.exe` is not present, the Speed Test tab will simulate results unless you point Settings to the CLI binary.
 
