@@ -443,7 +443,7 @@ This project is licensed under the MIT License - see [LICENSE](LICENSE) file for
 
 **Juraj Madžunkov**
 - LinkedIn: [Juraj Madžunkov](https://www.linkedin.com/in/juraj-madžunkov-53419925b/)
-- Email: juraj.madzunkov.main@gmail.com
+- Email: juraj@madzo.eu
 
 ## ☕ Support
 
