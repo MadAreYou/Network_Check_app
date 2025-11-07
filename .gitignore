@@ -1,0 +1,38 @@
+# User Data and Configuration
+config.json
+engine.log
+
+# Test Results and Exports
+exports/
+speedtest_*.json
+speedtest_*.txt
+
+# Build Artifacts
+build/temp_*/
+releases/*/
+
+# IDE and Editor
+.vs/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Windows
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# .NET (old version artifacts)
+bin/
+obj/
+*.user
+*.suo
+
+# Keep these important files
+!releases/*.zip
+!speedtest.exe
+!assets/
+!build/*.ps1
+!build/*.json
+!build/README.md
