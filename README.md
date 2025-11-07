@@ -47,7 +47,7 @@ A modern, lightweight Windows desktop application for comprehensive network diag
 ##  Installation
 
 ### Option 1: Portable Release (Recommended)
-1. Download the latest `NetworkCheck-vX.X.X-Portable.zip` from [Releases](https://github.com/MadAreYou/Network_Check_app/tree/main/releases)
+1. Download the latest `NetworkCheck-vX.X.X-Portable.zip` from [Releases](https://github.com/MadAreYou/Network_Check_app/releases)
 2. Extract to any folder
 3. Run `Run-NetworkCheck.bat`
 
@@ -151,12 +151,23 @@ Network_Check_app/
 
 ##  Screenshots
 
-*Coming soon - Add screenshots of:*
-- Speed Test tab in action
-- Network Info display
-- Diagnostics tools
-- Dark mode vs Light mode
-- Settings panel
+### Speed Test
+![Speed Test](screenshots/speed-test.png)
+
+### Network Information
+![Network Info](screenshots/network-info.png)
+
+### Diagnostics Tools
+![Diagnostics](screenshots/diagnostics.png)
+
+### Settings Panel
+![Settings](screenshots/settings.png)
+
+### Light Mode
+![Light Mode](screenshots/light-mode.png)
+
+### Dark Mode
+![Dark Mode](screenshots/dark-mode.png)
 
 ##  Contributing
 
