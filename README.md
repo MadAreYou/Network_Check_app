@@ -151,12 +151,23 @@ Network_Check_app/
 
 ##  Screenshots
 
-*Coming soon - Add screenshots of:*
-- Speed Test tab in action
-- Network Info display
-- Diagnostics tools
-- Dark mode vs Light mode
-- Settings panel
+### Speed Test
+![Speed Test](screenshots/speed-test.png)
+
+### Network Information
+![Network Info](screenshots/network-info.png)
+
+### Diagnostics Tools
+![Diagnostics](screenshots/diagnostics.png)
+
+### Settings Panel
+![Settings](screenshots/settings.png)
+
+### Light Mode
+![Light Mode](screenshots/light-mode.png)
+
+### Dark Mode
+![Dark Mode](screenshots/dark-mode.png)
 
 ##  Contributing
 
