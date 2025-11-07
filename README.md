@@ -47,7 +47,7 @@ A modern, lightweight Windows desktop application for comprehensive network diag
 ##  Installation
 
 ### Option 1: Portable Release (Recommended)
-1. Download the latest `NetworkCheck-vX.X.X-Portable.zip` from [Releases](https://github.com/MadAreYou/Network_Check_app/tree/main/releases)
+1. Download the latest `NetworkCheck-vX.X.X-Portable.zip` from [Releases](https://github.com/MadAreYou/Network_Check_app/releases)
 2. Extract to any folder
 3. Run `Run-NetworkCheck.bat`
 
