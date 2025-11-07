@@ -152,22 +152,22 @@ Network_Check_app/
 ##  Screenshots
 
 ### Speed Test
-![Speed Test](screenshots/speed-test.png)
+<img src="screenshots/speed-test.png" alt="Speed Test" width="600">
 
 ### Network Information
-![Network Info](screenshots/network-info.png)
+<img src="screenshots/network-info.png" alt="Network Info" width="600">
 
 ### Diagnostics Tools
-![Diagnostics](screenshots/diagnostics.png)
+<img src="screenshots/diagnostics.png" alt="Diagnostics" width="600">
 
 ### Settings Panel
-![Settings](screenshots/settings.png)
+<img src="screenshots/settings.png" alt="Settings" width="600">
 
 ### Light Mode
-![Light Mode](screenshots/light-mode.png)
+<img src="screenshots/light-mode.png" alt="Light Mode" width="600">
 
 ### Dark Mode
-![Dark Mode](screenshots/dark-mode.png)
+<img src="screenshots/dark-mode.png" alt="Dark Mode" width="600">
 
 ##  Contributing
 
