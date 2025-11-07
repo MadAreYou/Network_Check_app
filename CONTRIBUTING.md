@@ -140,7 +140,7 @@ Update these files:
 If you have questions:
 - Check existing [Issues](https://github.com/MadAreYou/Network_Check_app/issues)
 - Create a new issue with the `question` label
-- Contact: juraj.madzunkov.main@gmail.com
+- Contact: juraj@madzo.eu
 
 ## 📜 Code of Conduct
 

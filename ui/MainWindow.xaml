@@ -426,7 +426,7 @@ Run a speed test and watch log output here. Configure Ookla Speedtest CLI path i
                 <TextBlock Text="LinkedIn:" FontWeight="SemiBold" Width="80" Foreground="{DynamicResource TextPrimary}"/>
                 <TextBlock Foreground="{DynamicResource TextPrimary}">
                   <Hyperlink x:Name="lnkLinkedIn" NavigateUri="https://linkedin.com/in/juraj-madzunkov-457389104" Foreground="#0077B5" TextDecorations="None">
-                    <Run Text="[in]" FontWeight="Bold" FontFamily="Segoe UI"/> <Run Text="LinkedIn Profile"/>
+                    <Run Text="[in]" FontWeight="Bold" FontFamily="Segoe UI"/> <Run Text="LinkedIn"/>
                   </Hyperlink>
                 </TextBlock>
               </StackPanel>
