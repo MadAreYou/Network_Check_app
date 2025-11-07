@@ -194,7 +194,7 @@ You can package this app into a single executable using tools like PS2EXE. Ensur
 
 ### Build Portable Release
 
-1. Download the latest `NetworkCheck-vX.X.X-Portable.zip` from [Releases](https://github.com/MadAreYou/Network_Check_app/releases)- WMIC usage is kept to reuse existing script logic. In a future version, we can migrate to PowerShell Get-Net* cmdlets for better forward compatibility.
+1. Download the latest `NetworkCheck-vX.X.X-Portable.zip` from [Releases](https://github.com/MadAreYou/Network_Check_app/tree/main/releases)- WMIC usage is kept to reuse existing script logic. In a future version, we can migrate to PowerShell Get-Net* cmdlets for better forward compatibility.
 
 ```powershell
 
