@@ -1,0 +1,447 @@
+<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Network Check" Height="650" Width="900"
+        WindowStartupLocation="CenterScreen"
+        x:Name="mainWindow">
+  <Window.Resources>
+    <!-- Light Mode Theme (Default) -->
+    <SolidColorBrush x:Key="WindowBackground" Color="#F5F5F5"/>
+    <SolidColorBrush x:Key="ContentBackground" Color="White"/>
+    <SolidColorBrush x:Key="TextPrimary" Color="#212121"/>
+    <SolidColorBrush x:Key="TextSecondary" Color="#757575"/>
+    <SolidColorBrush x:Key="BorderBrush" Color="#E0E0E0"/>
+    <SolidColorBrush x:Key="TabBackground" Color="White"/>
+    <SolidColorBrush x:Key="FooterBackground" Color="#EEEEEE"/>
+    
+    <!-- Default Styles for Dark Mode Support -->
+    <Style TargetType="TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
+    </Style>
+    <Style TargetType="TextBox">
+      <Setter Property="Background" Value="{DynamicResource ContentBackground}"/>
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+    </Style>
+    <Style TargetType="CheckBox">
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
+    </Style>
+    <Style TargetType="RadioButton">
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
+    </Style>
+    <Style TargetType="TabItem">
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
+      <Setter Property="Background" Value="Transparent"/>
+      <Style.Triggers>
+        <Trigger Property="IsSelected" Value="True">
+          <Setter Property="Background" Value="{DynamicResource ContentBackground}"/>
+        </Trigger>
+      </Style.Triggers>
+    </Style>
+  </Window.Resources>
+  
+  <Grid Margin="0" Background="{DynamicResource WindowBackground}">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+
+    <!-- Header -->
+    <DockPanel Grid.Row="0" LastChildFill="True" Margin="10,10,10,8" Background="{DynamicResource ContentBackground}">
+      <TextBlock Text="Network Check" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource TextPrimary}" Margin="8,8,0,8"/>
+    </DockPanel>
+
+    <TabControl Grid.Row="1" Background="{DynamicResource TabBackground}">
+      <!-- Speed Test Tab -->
+      <TabItem Header="Speed Test">
+        <Grid Margin="8" Background="{DynamicResource ContentBackground}">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+          </Grid.RowDefinitions>
+
+          <DockPanel LastChildFill="True" Margin="0,0,0,12">
+            <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+              <Button x:Name="btnRunSpeed" Content="Run" Width="80" Margin="0,0,8,0"/>
+              <Button x:Name="btnStopSpeed" Content="Stop" Width="80" Margin="0,0,8,0"/>
+              <Button x:Name="btnExportSpeed" Content="Export" Width="80" Margin="0,0,8,0"/>
+              <Button x:Name="btnCopySpeed" Content="Copy" Width="80"/>
+            </StackPanel>
+            <TextBlock x:Name="lblEngine" Text="Powered by Ookla Speedtest" HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondary}" FontStyle="Italic"/>
+          </DockPanel>
+
+          <StackPanel Grid.Row="1" Orientation="Vertical" Margin="0,0,0,12">
+            <!-- Ping Row -->
+            <TextBlock x:Name="lblPing" Text="Ping: -- ms" FontSize="14" Margin="0,0,0,8"/>
+            
+            <!-- Download Row -->
+            <StackPanel Orientation="Horizontal" Margin="0,6,0,0" VerticalAlignment="Center">
+              <TextBlock Text="Download:" Width="100" FontWeight="SemiBold"/>
+              <!-- Proper spinning wheel icon -->
+              <Viewbox x:Name="lblDownloadSpinner" Width="20" Height="20" Visibility="Collapsed" Margin="0,0,8,0">
+                <Canvas Width="24" Height="24">
+                  <Canvas.RenderTransform>
+                    <RotateTransform x:Name="rotateDownload" CenterX="12" CenterY="12"/>
+                  </Canvas.RenderTransform>
+                  <!-- Spinning arc segments (creates loading wheel effect) -->
+                  <Path Data="M12,2 A10,10 0 0,1 22,12" Stroke="LimeGreen" StrokeThickness="3"/>
+                  <Path Data="M22,12 A10,10 0 0,1 12,22" Stroke="LimeGreen" StrokeThickness="3" Opacity="0.6"/>
+                  <Path Data="M12,22 A10,10 0 0,1 2,12" Stroke="LimeGreen" StrokeThickness="3" Opacity="0.3"/>
+                  <Path Data="M2,12 A10,10 0 0,1 12,2" Stroke="LimeGreen" StrokeThickness="3" Opacity="0.1"/>
+                </Canvas>
+              </Viewbox>
+              <TextBlock x:Name="lblDownloadStatus" Text="Testing..." Foreground="Gray" FontStyle="Italic" Visibility="Collapsed" Margin="0,0,12,0"/>
+              <TextBlock x:Name="lblDownload" Text="-- Mbps" FontSize="14" FontWeight="Bold" Margin="0,0,12,0"/>
+              <TextBlock Text="Idle Latency:" Margin="0,0,6,0" Foreground="#666"/>
+              <TextBlock x:Name="lblDownloadLatency" Text="--" Foreground="#666"/>
+            </StackPanel>
+            
+            <!-- Upload Row -->
+            <StackPanel Orientation="Horizontal" Margin="0,8,0,0" VerticalAlignment="Center">
+              <TextBlock Text="Upload:" Width="100" FontWeight="SemiBold"/>
+              <!-- Proper spinning wheel icon -->
+              <Viewbox x:Name="lblUploadSpinner" Width="20" Height="20" Visibility="Collapsed" Margin="0,0,8,0">
+                <Canvas Width="24" Height="24">
+                  <Canvas.RenderTransform>
+                    <RotateTransform x:Name="rotateUpload" CenterX="12" CenterY="12"/>
+                  </Canvas.RenderTransform>
+                  <!-- Spinning arc segments (creates loading wheel effect) -->
+                  <Path Data="M12,2 A10,10 0 0,1 22,12" Stroke="LimeGreen" StrokeThickness="3"/>
+                  <Path Data="M22,12 A10,10 0 0,1 12,22" Stroke="LimeGreen" StrokeThickness="3" Opacity="0.6"/>
+                  <Path Data="M12,22 A10,10 0 0,1 2,12" Stroke="LimeGreen" StrokeThickness="3" Opacity="0.3"/>
+                  <Path Data="M2,12 A10,10 0 0,1 12,2" Stroke="LimeGreen" StrokeThickness="3" Opacity="0.1"/>
+                </Canvas>
+              </Viewbox>
+              <TextBlock x:Name="lblUploadStatus" Text="Testing..." Foreground="Gray" FontStyle="Italic" Visibility="Collapsed" Margin="0,0,12,0"/>
+              <TextBlock x:Name="lblUpload" Text="-- Mbps" FontSize="14" FontWeight="Bold" Margin="0,0,12,0"/>
+              <TextBlock Text="Idle Latency:" Margin="0,0,6,0" Foreground="#666"/>
+              <TextBlock x:Name="lblUploadLatency" Text="--" Foreground="#666"/>
+            </StackPanel>
+            
+            <!-- Additional Info Row -->
+            <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+              <TextBlock Text="ISP:" FontWeight="SemiBold" Margin="0,0,6,0"/>
+              <TextBlock x:Name="lblIsp" Text="--" Margin="0,0,24,0"/>
+              <TextBlock Text="Server:" FontWeight="SemiBold" Margin="0,0,6,0"/>
+              <TextBlock x:Name="lblServer" Text="--" Margin="0,0,24,0"/>
+              <TextBlock Text="Packet Loss:" FontWeight="SemiBold" Margin="0,0,6,0"/>
+              <TextBlock x:Name="lblPacketLoss" Text="--"/>
+            </StackPanel>
+          </StackPanel>
+
+          <Border Grid.Row="3" BorderBrush="#DDD" BorderThickness="1" CornerRadius="4" Padding="8">
+            <TextBox x:Name="txtSpeedLog" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" IsReadOnly="True" TextWrapping="NoWrap">
+Run a speed test and watch log output here. Configure Ookla Speedtest CLI path in Settings, or place speedtest.exe next to the app.
+            </TextBox>
+          </Border>
+        </Grid>
+      </TabItem>
+
+      <!-- Network Info Tab -->
+      <TabItem Header="Network Info">
+        <Grid Margin="8" Background="{DynamicResource ContentBackground}">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+          </Grid.RowDefinitions>
+
+          <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+            <Button x:Name="btnRefreshInfo" Content="Refresh" Width="90" Margin="0,0,8,0"/>
+            <Button x:Name="btnExportInfo" Content="Export" Width="90" Margin="0,0,8,0"/>
+            <Button x:Name="btnCopyInfo" Content="Copy" Width="90" Margin="0,0,8,0"/>
+            <Viewbox x:Name="spinnerNetworkInfo" Width="20" Height="20" Margin="8,0,8,0" Visibility="Collapsed">
+              <Canvas Width="24" Height="24">
+                <Canvas.RenderTransform>
+                  <RotateTransform x:Name="rotateNetworkInfo" CenterX="12" CenterY="12"/>
+                </Canvas.RenderTransform>
+                <Path Data="M12,2 A10,10 0 0,1 22,12" Stroke="LimeGreen" StrokeThickness="3"/>
+                <Path Data="M22,12 A10,10 0 0,1 12,22" Stroke="LimeGreen" StrokeThickness="3" Opacity="0.6"/>
+                <Path Data="M12,22 A10,10 0 0,1 2,12" Stroke="LimeGreen" StrokeThickness="3" Opacity="0.3"/>
+                <Path Data="M2,12 A10,10 0 0,1 12,2" Stroke="LimeGreen" StrokeThickness="3" Opacity="0.1"/>
+              </Canvas>
+            </Viewbox>
+            <TextBlock x:Name="lblNetworkInfoStatus" Text="Refreshing..." FontStyle="Italic" Foreground="Gray" Margin="0,0,8,0" VerticalAlignment="Center" Visibility="Collapsed"/>
+            <TextBlock x:Name="lblLastRefreshed" Text="" FontStyle="Italic" Foreground="Gray" VerticalAlignment="Center"/>
+          </StackPanel>
+
+          <Grid Grid.Row="1">
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="150"/>
+              <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Network:" FontWeight="Bold"/>
+            <TextBox Grid.Row="0" Grid.Column="1" x:Name="txtSSID" IsReadOnly="True"/>
+
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="LAN IP:" FontWeight="Bold"/>
+            <TextBox Grid.Row="1" Grid.Column="1" x:Name="txtLanIP" IsReadOnly="True"/>
+
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="Gateway:" FontWeight="Bold"/>
+            <TextBox Grid.Row="2" Grid.Column="1" x:Name="txtGateway" IsReadOnly="True"/>
+
+            <TextBlock Grid.Row="3" Grid.Column="0" Text="DHCP:" FontWeight="Bold"/>
+            <TextBox Grid.Row="3" Grid.Column="1" x:Name="txtDHCP" IsReadOnly="True"/>
+
+            <TextBlock Grid.Row="4" Grid.Column="0" Text="DNS Servers:" FontWeight="Bold"/>
+            <TextBox Grid.Row="4" Grid.Column="1" x:Name="txtDNS" IsReadOnly="True"/>
+
+            <TextBlock Grid.Row="5" Grid.Column="0" Text="MAC:" FontWeight="Bold"/>
+            <TextBox Grid.Row="5" Grid.Column="1" x:Name="txtMAC" IsReadOnly="True"/>
+
+            <TextBlock Grid.Row="6" Grid.Column="0" Text="Hostname:" FontWeight="Bold"/>
+            <TextBox Grid.Row="6" Grid.Column="1" x:Name="txtHostname" IsReadOnly="True"/>
+
+            <TextBlock Grid.Row="7" Grid.Column="0" Text="Public IP / ISP:" FontWeight="Bold"/>
+            <StackPanel Grid.Row="7" Grid.Column="1" Orientation="Vertical">
+              <TextBox x:Name="txtPublicIP" IsReadOnly="True"/>
+              <TextBox x:Name="txtISP" IsReadOnly="True" Margin="0,6,0,0"/>
+            </StackPanel>
+          </Grid>
+        </Grid>
+      </TabItem>
+
+      <!-- Diagnostics Tab -->
+      <TabItem Header="Diagnostics">
+        <Grid Margin="8" Background="{DynamicResource ContentBackground}">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+          </Grid.RowDefinitions>
+
+          <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+            <TextBlock Text="Ping:" VerticalAlignment="Center" Width="60"/>
+            <TextBox x:Name="txtPingTarget" Width="240" Text="1.1.1.1" Margin="0,0,8,0"/>
+            <Button x:Name="btnRunPing" Content="Run" Width="80"/>
+            <Viewbox x:Name="spinnerPing" Width="16" Height="16" Visibility="Collapsed" Margin="8,0,0,0">
+              <Canvas Width="24" Height="24">
+                <Canvas.RenderTransform>
+                  <RotateTransform x:Name="rotatePing" CenterX="12" CenterY="12"/>
+                </Canvas.RenderTransform>
+                <Path Data="M12,2 A10,10 0 0,1 22,12" Stroke="LimeGreen" StrokeThickness="3"/>
+                <Path Data="M22,12 A10,10 0 0,1 12,22" Stroke="LimeGreen" StrokeThickness="3" Opacity="0.6"/>
+                <Path Data="M12,22 A10,10 0 0,1 2,12" Stroke="LimeGreen" StrokeThickness="3" Opacity="0.3"/>
+                <Path Data="M2,12 A10,10 0 0,1 12,2" Stroke="LimeGreen" StrokeThickness="3" Opacity="0.1"/>
+              </Canvas>
+            </Viewbox>
+            <TextBlock x:Name="lblPingStatus" Text="Please wait..." Foreground="Gray" FontStyle="Italic" Visibility="Collapsed" Margin="6,0,0,0" VerticalAlignment="Center"/>
+            <Button x:Name="btnCancelPing" Content="Cancel" Width="70" Visibility="Collapsed" Margin="6,0,0,0"/>
+          </StackPanel>
+
+          <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,8">
+            <TextBlock Text="Lookup:" VerticalAlignment="Center" Width="60"/>
+            <TextBox x:Name="txtLookupTarget" Width="240" Text="example.com" Margin="0,0,8,0"/>
+            <Button x:Name="btnRunLookup" Content="Run" Width="80"/>
+            <Viewbox x:Name="spinnerLookup" Width="16" Height="16" Visibility="Collapsed" Margin="8,0,0,0">
+              <Canvas Width="24" Height="24">
+                <Canvas.RenderTransform>
+                  <RotateTransform x:Name="rotateLookup" CenterX="12" CenterY="12"/>
+                </Canvas.RenderTransform>
+                <Path Data="M12,2 A10,10 0 0,1 22,12" Stroke="LimeGreen" StrokeThickness="3"/>
+                <Path Data="M22,12 A10,10 0 0,1 12,22" Stroke="LimeGreen" StrokeThickness="3" Opacity="0.6"/>
+                <Path Data="M12,22 A10,10 0 0,1 2,12" Stroke="LimeGreen" StrokeThickness="3" Opacity="0.3"/>
+                <Path Data="M2,12 A10,10 0 0,1 12,2" Stroke="LimeGreen" StrokeThickness="3" Opacity="0.1"/>
+              </Canvas>
+            </Viewbox>
+            <TextBlock x:Name="lblLookupStatus" Text="Please wait..." Foreground="Gray" FontStyle="Italic" Visibility="Collapsed" Margin="6,0,0,0" VerticalAlignment="Center"/>
+            <Button x:Name="btnCancelLookup" Content="Cancel" Width="70" Visibility="Collapsed" Margin="6,0,0,0"/>
+          </StackPanel>
+
+          <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,8">
+            <TextBlock Text="Trace:" VerticalAlignment="Center" Width="60"/>
+            <TextBox x:Name="txtTraceTarget" Width="240" Text="1.1.1.1" Margin="0,0,8,0"/>
+            <Button x:Name="btnRunTrace" Content="Run" Width="80"/>
+            <Viewbox x:Name="spinnerTrace" Width="16" Height="16" Visibility="Collapsed" Margin="8,0,0,0">
+              <Canvas Width="24" Height="24">
+                <Canvas.RenderTransform>
+                  <RotateTransform x:Name="rotateTrace" CenterX="12" CenterY="12"/>
+                </Canvas.RenderTransform>
+                <Path Data="M12,2 A10,10 0 0,1 22,12" Stroke="LimeGreen" StrokeThickness="3"/>
+                <Path Data="M22,12 A10,10 0 0,1 12,22" Stroke="LimeGreen" StrokeThickness="3" Opacity="0.6"/>
+                <Path Data="M12,22 A10,10 0 0,1 2,12" Stroke="LimeGreen" StrokeThickness="3" Opacity="0.3"/>
+                <Path Data="M2,12 A10,10 0 0,1 12,2" Stroke="LimeGreen" StrokeThickness="3" Opacity="0.1"/>
+              </Canvas>
+            </Viewbox>
+            <TextBlock x:Name="lblTraceStatus" Text="Please wait..." Foreground="Gray" FontStyle="Italic" Visibility="Collapsed" Margin="6,0,0,0" VerticalAlignment="Center"/>
+            <Button x:Name="btnCancelTrace" Content="Cancel" Width="70" Visibility="Collapsed" Margin="6,0,0,0"/>
+          </StackPanel>
+
+          <WrapPanel Grid.Row="3" Margin="0,0,0,8">
+            <Button x:Name="btnFlushDNS" Content="Flush DNS" Width="120" Margin="0,0,8,8"/>
+            <Button x:Name="btnReleaseRenew" Content="Release/Renew" Width="120" Margin="0,0,8,8"/>
+            <Button x:Name="btnWinsockReset" Content="Winsock Reset" Width="120" Margin="0,0,8,8"/>
+            <Button x:Name="btnClearARP" Content="Clear ARP" Width="120" Margin="0,0,8,8"/>
+          </WrapPanel>
+
+          <TextBox Grid.Row="4" x:Name="txtDiagOutput" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" AcceptsReturn="True" TextWrapping="NoWrap"/>
+
+          <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
+            <Button x:Name="btnCopyDiag" Content="Copy" Width="90" Margin="0,0,8,0"/>
+            <Button x:Name="btnExportDiag" Content="Export" Width="90"/>
+          </StackPanel>
+        </Grid>
+      </TabItem>
+
+      <!-- Settings Tab -->
+      <TabItem Header="Settings">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+          <Grid Margin="8">
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="*"/>
+              <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="150"/>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Appearance Section -->
+            <TextBlock Grid.Row="0" Grid.ColumnSpan="3" Text="Appearance" FontSize="14" FontWeight="Bold" Margin="0,0,0,8" Foreground="{DynamicResource TextPrimary}"/>
+            
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="Theme:" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimary}"/>
+            <StackPanel Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Orientation="Horizontal">
+              <RadioButton x:Name="rbLightMode" Content="Light Mode" GroupName="Theme" IsChecked="True" Margin="0,0,20,0" Foreground="{DynamicResource TextPrimary}"/>
+              <RadioButton x:Name="rbDarkMode" Content="Dark Mode" GroupName="Theme" Foreground="{DynamicResource TextPrimary}"/>
+            </StackPanel>
+
+            <!-- General Settings Section -->
+            <TextBlock Grid.Row="2" Grid.ColumnSpan="3" Text="General" FontSize="14" FontWeight="Bold" Margin="0,16,0,8" Foreground="{DynamicResource TextPrimary}"/>
+            
+            <TextBlock Grid.Row="3" Grid.Column="0" Text="Export Folder:" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimary}"/>
+            <TextBox Grid.Row="3" Grid.Column="1" x:Name="txtExportFolder" Background="{DynamicResource ContentBackground}" Foreground="{DynamicResource TextPrimary}" BorderBrush="{DynamicResource BorderBrush}"/>
+            <Button Grid.Row="3" Grid.Column="2" x:Name="btnBrowseExport" Content="Browse" Margin="8,0,0,0"/>
+
+            <CheckBox Grid.Row="4" Grid.ColumnSpan="3" x:Name="chkAutoExport" Content="Auto-export after speed test" Margin="0,8,0,0" Foreground="{DynamicResource TextPrimary}"/>
+
+            <!-- Desktop Shortcut Section -->
+            <TextBlock Grid.Row="5" Grid.Column="0" Text="Desktop Shortcut:" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimary}" Margin="0,12,0,0"/>
+            <StackPanel Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,12,0,0">
+              <Button x:Name="btnCreateShortcut" Content="Create Shortcut" Width="120" Margin="0,0,8,0"/>
+              <Button x:Name="btnRemoveShortcut" Content="Remove Shortcut" Width="120"/>
+            </StackPanel>
+
+            <!-- Advanced Section (Collapsible) -->
+            <Expander Grid.Row="6" Grid.ColumnSpan="3" Header="Advanced" Margin="0,16,0,0" Foreground="{DynamicResource TextPrimary}" Background="{DynamicResource ContentBackground}">
+              <Grid Margin="0,8,0,0">
+                <Grid.RowDefinitions>
+                  <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="150"/>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Ookla CLI Path:" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondary}" FontSize="11"/>
+                <TextBox Grid.Row="0" Grid.Column="1" x:Name="txtCliPath" FontSize="11" Background="{DynamicResource ContentBackground}" Foreground="{DynamicResource TextPrimary}" BorderBrush="{DynamicResource BorderBrush}"/>
+                <Button Grid.Row="0" Grid.Column="2" x:Name="btnBrowseCli" Content="Browse" Margin="8,0,0,0" FontSize="11"/>
+              </Grid>
+            </Expander>
+
+            <StackPanel Grid.Row="8" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+              <Button x:Name="btnSaveSettings" Content="Save Settings" Width="120"/>
+            </StackPanel>
+          </Grid>
+        </ScrollViewer>
+      </TabItem>
+    </TabControl>
+    
+    <!-- Footer -->
+    <Border Grid.Row="2" Background="{DynamicResource FooterBackground}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0" Padding="10,6">
+      <DockPanel LastChildFill="False">
+        <TextBlock DockPanel.Dock="Right" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondary}" FontSize="11">
+          <Run Text="(c) 2025 Juraj Madzunkov"/>
+          <Run Text=" | "/>
+          <Hyperlink x:Name="lnkContact" TextDecorations="None" Foreground="#2196F3">Contact</Hyperlink>
+        </TextBlock>
+      </DockPanel>
+    </Border>
+    
+    <!-- Contact Popup (Hidden by default) -->
+    <Border x:Name="contactOverlay" Grid.RowSpan="3" Background="#80000000" Visibility="Collapsed">
+      <Border Background="{DynamicResource ContentBackground}" 
+              Width="560" Height="325" 
+              CornerRadius="8"
+              BorderBrush="{DynamicResource BorderBrush}" 
+              BorderThickness="1"
+              VerticalAlignment="Center" 
+              HorizontalAlignment="Center">
+        <Grid Margin="24">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+          </Grid.RowDefinitions>
+          
+          <!-- Header -->
+          <DockPanel Grid.Row="0" LastChildFill="False" Margin="0,0,0,20">
+            <TextBlock DockPanel.Dock="Left" Text="Contact Information" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimary}"/>
+            <Button x:Name="btnCloseContact" DockPanel.Dock="Right" Content="X" FontSize="16" FontWeight="Bold" Width="30" Height="30" 
+                    Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextSecondary}" 
+                    Cursor="Hand" VerticalContentAlignment="Center" Padding="0,0,0,0"/>
+          </DockPanel>
+          
+          <!-- Content -->
+          <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            
+            <!-- Left: Contact Info -->
+            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,30,0">
+              <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                <TextBlock Text="Email:" FontWeight="SemiBold" Width="80" Foreground="{DynamicResource TextPrimary}"/>
+                <TextBlock Foreground="{DynamicResource TextPrimary}">
+                  <Hyperlink x:Name="lnkEmail" NavigateUri="mailto:juraj@madzo.eu" Foreground="#2196F3">
+                    juraj@madzo.eu
+                  </Hyperlink>
+                </TextBlock>
+              </StackPanel>
+              
+              <StackPanel Orientation="Horizontal">
+                <TextBlock Text="LinkedIn:" FontWeight="SemiBold" Width="80" Foreground="{DynamicResource TextPrimary}"/>
+                <TextBlock Foreground="{DynamicResource TextPrimary}">
+                  <Hyperlink x:Name="lnkLinkedIn" NavigateUri="https://linkedin.com/in/juraj-madzunkov-457389104" Foreground="#0077B5" TextDecorations="None">
+                    <Run Text="[in]" FontWeight="Bold" FontFamily="Segoe UI"/> <Run Text="LinkedIn Profile"/>
+                  </Hyperlink>
+                </TextBlock>
+              </StackPanel>
+            </StackPanel>
+            
+            <!-- Right: Donation QR Code -->
+            <StackPanel Grid.Column="1" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="10,0,0,0">
+              <TextBlock Text="This app is free." FontSize="11" TextAlignment="Center" Foreground="{DynamicResource TextSecondary}" Margin="0,0,0,3"/>
+              <TextBlock Text="If you like it, buy me a coffee!" FontSize="11" TextAlignment="Center" Foreground="{DynamicResource TextSecondary}" Margin="0,0,0,14"/>
+              <Image x:Name="imgQRCode" Width="140" Height="140" Stretch="Uniform" Margin="0,0,0,10"/>
+              <TextBlock x:Name="txtRevolutTag" Text="@jurajcy93" FontSize="12" TextAlignment="Center" Foreground="{DynamicResource TextSecondary}" FontWeight="Bold" Padding="0,0,0,2"/>
+            </StackPanel>
+          </Grid>
+        </Grid>
+      </Border>
+    </Border>
+  </Grid>
+</Window>

@@ -1,0 +1,20 @@
+# Exports and logs
+exports/
+*.log
+
+# PowerShell artifacts
+*.ps1xml
+
+# Windows
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# VS Code
+.vscode/
+
+# Speedtest binary (if downloaded separately)
+speedtest.exe
+
+# User-specific config (will be regenerated)
+# config.json is tracked with relative paths
