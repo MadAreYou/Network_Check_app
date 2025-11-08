@@ -1,0 +1,27 @@
+{
+  "AppName": "Network Check",
+  "Version": "1.0.0",
+  "Author": "Juraj Madzunkov",
+  "Copyright": "(c) 2025 Juraj Madzunkov",
+  "Description": "Network Speed Test and Diagnostics Tool",
+  "ExeName": "NetworkCheck.exe",
+  "MainScript": "NetworkCheckApp.ps1",
+  "IconFile": "assets\\desktop_icon.ico",
+  "IncludeFiles": [
+    "NetworkCheckApp.ps1",
+    "speedtest.exe",
+    "config.json",
+    "src\\*.ps1",
+    "ui\\*.xaml",
+    "assets\\*"
+  ],
+  "ExcludePatterns": [
+    "*.log",
+    "*.bak",
+    "exports\\*",
+    "build\\*",
+    "releases\\*",
+    ".git\\*",
+    ".vscode\\*"
+  ]
+}

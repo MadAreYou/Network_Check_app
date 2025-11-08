@@ -1,6 +1,24 @@
-# Exports and logs
+# User Data and Configuration
+config.json
+engine.log
+ui-error.log
+
+# Test Results and Exports
 exports/
+speedtest_*.json
+speedtest_*.txt
 *.log
+
+# Build Artifacts
+build/temp_*/
+releases/*/
+
+# IDE and Editor
+.vs/
+.vscode/
+*.swp
+*.swo
+*~
 
 # PowerShell artifacts
 *.ps1xml
@@ -10,11 +28,16 @@ Thumbs.db
 Desktop.ini
 $RECYCLE.BIN/
 
-# VS Code
-.vscode/
+# .NET (old version artifacts)
+bin/
+obj/
+*.user
+*.suo
 
-# Speedtest binary (if downloaded separately)
-speedtest.exe
-
-# User-specific config (will be regenerated)
-# config.json is tracked with relative paths
+# Keep these important files
+!releases/*.zip
+!speedtest.exe
+!assets/
+!build/*.ps1
+!build/*.json
+!build/README.md
