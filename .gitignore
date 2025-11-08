@@ -1,11 +1,13 @@
 # User Data and Configuration
 config.json
 engine.log
+ui-error.log
 
 # Test Results and Exports
 exports/
 speedtest_*.json
 speedtest_*.txt
+*.log
 
 # Build Artifacts
 build/temp_*/
@@ -17,6 +19,9 @@ releases/*/
 *.swp
 *.swo
 *~
+
+# PowerShell artifacts
+*.ps1xml
 
 # Windows
 Thumbs.db

@@ -39,11 +39,22 @@ function Get-NcSettings {
             $cfg.ExportFolder = Join-Path $AppRoot 'exports'
         }
         
+        # Convert relative paths to absolute based on AppRoot
+        if (-not [System.IO.Path]::IsPathRooted($cfg.ExportFolder)) {
+            $cfg.ExportFolder = Join-Path $AppRoot $cfg.ExportFolder
+        }
+        
         # Auto-detect Ookla CLI if path is empty
         $ooklaLocal = Join-Path $AppRoot 'speedtest.exe'
         if ((-not $cfg.OoklaCLIPath) -or [string]::IsNullOrWhiteSpace($cfg.OoklaCLIPath)) {
             if (Test-Path -LiteralPath $ooklaLocal) { $cfg.OoklaCLIPath = $ooklaLocal }
         }
+        
+        # Convert relative Ookla path to absolute based on AppRoot
+        if (-not [string]::IsNullOrWhiteSpace($cfg.OoklaCLIPath) -and -not [System.IO.Path]::IsPathRooted($cfg.OoklaCLIPath)) {
+            $cfg.OoklaCLIPath = Join-Path $AppRoot $cfg.OoklaCLIPath
+        }
+        
         if (-not ($cfg.PSObject.Properties.Name -contains 'OoklaLicenseAccepted')) {
             $cfg | Add-Member -NotePropertyName OoklaLicenseAccepted -NotePropertyValue $false
         }
