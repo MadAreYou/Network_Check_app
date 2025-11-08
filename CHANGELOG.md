@@ -1,5 +1,26 @@
 # Network Check - Version History
 
+## Version 1.0.1 (2025-11-08)
+
+### Bug Fixes
+- 🔧 **Portability Fix** - Settings.ps1 path resolution
+  - Fixed hardcoded absolute paths causing "Access Denied" errors on different machines
+  - Added automatic conversion of relative paths to absolute based on app location
+  - App now works correctly when extracted to any folder location
+  
+### Improvements
+- ➕ **Added Run-NetworkCheck.bat** - Easy launcher for the application
+  - Double-click to start the app without right-click "Run with PowerShell"
+  - Hidden window mode for cleaner execution
+  - Error handling with helpful instructions
+  
+### Configuration
+- 🗑️ **config.json** - No longer tracked in git (user-generated file)
+  - Will be auto-created on first run with correct paths
+  - Prevents conflicts when app is moved to different locations
+
+---
+
 ## Version 1.0.0 (2025-11-07)
 
 ### Features
