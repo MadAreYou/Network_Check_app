@@ -945,8 +945,19 @@ $btnCreateShortcut.Add_Click({
         
         $WshShell = New-Object -ComObject WScript.Shell
         $Shortcut = $WshShell.CreateShortcut($shortcutPath)
-        $Shortcut.TargetPath = 'powershell.exe'
-        $Shortcut.Arguments = "-ExecutionPolicy Bypass -WindowStyle Hidden -File `"$($Script:AppRoot)\NetworkCheckApp.ps1`""
+        
+        # Use VBScript launcher for hidden window
+        $vbsLauncher = Join-Path $Script:AppRoot 'Run-NetworkCheck.vbs'
+        if (Test-Path -LiteralPath $vbsLauncher) {
+            $Shortcut.TargetPath = 'wscript.exe'
+            $Shortcut.Arguments = "`"$vbsLauncher`""
+        }
+        else {
+            # Fallback to PowerShell if VBS not found
+            $Shortcut.TargetPath = 'powershell.exe'
+            $Shortcut.Arguments = "-ExecutionPolicy Bypass -WindowStyle Hidden -File `"$($Script:AppRoot)\NetworkCheckApp.ps1`""
+        }
+        
         $Shortcut.WorkingDirectory = $Script:AppRoot
         
         # Use custom icon if available, otherwise use PowerShell icon
