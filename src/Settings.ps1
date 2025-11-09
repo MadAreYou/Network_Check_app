@@ -21,6 +21,8 @@ function Get-NcSettings {
             AutoExportMorningCheck = $false
             OoklaLicenseAccepted = $false
             DarkMode = $false
+            CheckUpdatesOnStartup = $true
+            LastUpdateCheck = $null
         }
         if (-not (Test-Path -LiteralPath $defaultExport)) { New-Item -ItemType Directory -Path $defaultExport -Force | Out-Null }
         $cfg | ConvertTo-Json | Set-Content -LiteralPath $configPath -Encoding UTF8
@@ -60,6 +62,14 @@ function Get-NcSettings {
         }
         if (-not ($cfg.PSObject.Properties.Name -contains 'DarkMode')) {
             $cfg | Add-Member -NotePropertyName DarkMode -NotePropertyValue $false
+        }
+        
+        # Backfill update-related settings (for existing installations)
+        if (-not ($cfg.PSObject.Properties.Name -contains 'CheckUpdatesOnStartup')) {
+            $cfg | Add-Member -NotePropertyName CheckUpdatesOnStartup -NotePropertyValue $true
+        }
+        if (-not ($cfg.PSObject.Properties.Name -contains 'LastUpdateCheck')) {
+            $cfg | Add-Member -NotePropertyName LastUpdateCheck -NotePropertyValue $null
         }
         
         # Ensure export folder exists

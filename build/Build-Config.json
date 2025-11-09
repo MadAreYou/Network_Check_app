@@ -1,6 +1,6 @@
 {
   "AppName": "Network Check",
-  "Version": "1.0.1",
+  "Version": "1.0.2",
   "Author": "Juraj Madzunkov",
   "Copyright": "(c) 2025 Juraj Madzunkov",
   "Description": "Network Speed Test and Diagnostics Tool",
@@ -9,6 +9,8 @@
   "IconFile": "assets\\desktop_icon.ico",
   "IncludeFiles": [
     "NetworkCheckApp.ps1",
+    "Run-NetworkCheck.vbs",
+    "Run-NetworkCheck.bat",
     "speedtest.exe",
     "config.json",
     "src\\*.ps1",
@@ -22,6 +24,8 @@
     "build\\*",
     "releases\\*",
     ".git\\*",
-    ".vscode\\*"
+    ".vscode\\*",
+    "XAML-FIX-COMPLETE.md",
+    "UPDATE-FEATURE-GUIDE.md"
   ]
 }

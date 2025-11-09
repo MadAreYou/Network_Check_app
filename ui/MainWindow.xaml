@@ -336,15 +336,17 @@ Run a speed test and watch log output here. Configure Ookla Speedtest CLI path i
 
             <CheckBox Grid.Row="4" Grid.ColumnSpan="3" x:Name="chkAutoExport" Content="Auto-export after speed test" Margin="0,8,0,0" Foreground="{DynamicResource TextPrimary}"/>
 
+            <CheckBox Grid.Row="5" Grid.ColumnSpan="3" x:Name="chkCheckUpdates" Content="Check for updates on startup" Margin="0,8,0,0" Foreground="{DynamicResource TextPrimary}"/>
+
             <!-- Desktop Shortcut Section -->
-            <TextBlock Grid.Row="5" Grid.Column="0" Text="Desktop Shortcut:" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimary}" Margin="0,12,0,0"/>
-            <StackPanel Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,12,0,0">
+            <TextBlock Grid.Row="6" Grid.Column="0" Text="Desktop Shortcut:" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimary}" Margin="0,12,0,0"/>
+            <StackPanel Grid.Row="6" Grid.Column="1" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,12,0,0">
               <Button x:Name="btnCreateShortcut" Content="Create Shortcut" Width="120" Margin="0,0,8,0"/>
               <Button x:Name="btnRemoveShortcut" Content="Remove Shortcut" Width="120"/>
             </StackPanel>
 
             <!-- Advanced Section (Collapsible) -->
-            <Expander Grid.Row="6" Grid.ColumnSpan="3" Header="Advanced" Margin="0,16,0,0" Foreground="{DynamicResource TextPrimary}" Background="{DynamicResource ContentBackground}">
+            <Expander Grid.Row="7" Grid.ColumnSpan="3" Header="Advanced" Margin="0,16,0,0" Foreground="{DynamicResource TextPrimary}" Background="{DynamicResource ContentBackground}">
               <Grid Margin="0,8,0,0">
                 <Grid.RowDefinitions>
                   <RowDefinition Height="Auto"/>
@@ -361,9 +363,14 @@ Run a speed test and watch log output here. Configure Ookla Speedtest CLI path i
               </Grid>
             </Expander>
 
-            <StackPanel Grid.Row="8" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
-              <Button x:Name="btnSaveSettings" Content="Save Settings" Width="120"/>
-            </StackPanel>
+            <!-- Update Section (Bottom Left) -->
+            <DockPanel Grid.Row="8" Grid.ColumnSpan="3" Margin="0,16,0,0" LastChildFill="True">
+              <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
+                <Button x:Name="btnCheckUpdates" Content="Check for Updates" Width="140" Margin="0,0,12,0"/>
+                <TextBlock x:Name="lblCurrentVersion" Text="Current version: v1.0.1" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondary}" FontSize="11"/>
+              </StackPanel>
+              <Button x:Name="btnSaveSettings" Content="Save Settings" Width="120" HorizontalAlignment="Right"/>
+            </DockPanel>
           </Grid>
         </ScrollViewer>
       </TabItem>
@@ -440,6 +447,56 @@ Run a speed test and watch log output here. Configure Ookla Speedtest CLI path i
               <TextBlock x:Name="txtRevolutTag" Text="@jurajcy93" FontSize="12" TextAlignment="Center" Foreground="{DynamicResource TextSecondary}" FontWeight="Bold" Padding="0,0,0,2"/>
             </StackPanel>
           </Grid>
+        </Grid>
+      </Border>
+    </Border>
+    
+    <!-- Update Popup (Hidden by default) -->
+    <Border x:Name="updateOverlay" Grid.RowSpan="3" Background="#80000000" Visibility="Collapsed">
+      <Border Background="{DynamicResource ContentBackground}" 
+              Width="480" Height="280" 
+              CornerRadius="8"
+              BorderBrush="{DynamicResource BorderBrush}" 
+              BorderThickness="1"
+              VerticalAlignment="Center" 
+              HorizontalAlignment="Center">
+        <Grid Margin="24">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+          </Grid.RowDefinitions>
+          
+          <!-- Header -->
+          <DockPanel Grid.Row="0" LastChildFill="False" Margin="0,0,0,16">
+            <TextBlock DockPanel.Dock="Left" Text="Update Available" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimary}"/>
+            <Button x:Name="btnCloseUpdate" DockPanel.Dock="Right" Content="X" FontSize="16" FontWeight="Bold" Width="30" Height="30" 
+                    Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextSecondary}" 
+                    Cursor="Hand" VerticalContentAlignment="Center" Padding="0,0,0,0"/>
+          </DockPanel>
+          
+          <!-- Content -->
+          <StackPanel Grid.Row="1" VerticalAlignment="Center">
+            <TextBlock Text="A new version of Network Check is available!" FontSize="13" Foreground="{DynamicResource TextPrimary}" Margin="0,0,0,16" TextWrapping="Wrap"/>
+            
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+              <TextBlock Text="Installed Version:" FontWeight="SemiBold" Width="130" Foreground="{DynamicResource TextPrimary}"/>
+              <TextBlock x:Name="lblInstalledVersion" Text="v1.0.1" Foreground="{DynamicResource TextSecondary}"/>
+            </StackPanel>
+            
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+              <TextBlock Text="New Version:" FontWeight="SemiBold" Width="130" Foreground="{DynamicResource TextPrimary}"/>
+              <TextBlock x:Name="lblNewVersion" Text="v1.0.2" Foreground="#4CAF50" FontWeight="Bold"/>
+            </StackPanel>
+            
+            <TextBlock x:Name="lblUpdateStatus" Text="" FontStyle="Italic" Foreground="Gray" Margin="0,8,0,0" TextWrapping="Wrap"/>
+          </StackPanel>
+          
+          <!-- Buttons -->
+          <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+            <Button x:Name="btnUpgrade" Content="Upgrade Now" Width="120" Margin="0,0,8,0" Background="#4CAF50" Foreground="White" BorderBrush="#4CAF50"/>
+            <Button x:Name="btnLater" Content="Later" Width="100"/>
+          </StackPanel>
         </Grid>
       </Border>
     </Border>

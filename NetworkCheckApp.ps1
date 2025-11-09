@@ -27,6 +27,7 @@ $Script:KeepAliveUntil = [DateTime]::UtcNow.AddMinutes(3)
 . "$Script:AppRoot\src\NetworkInfo.ps1"
 . "$Script:AppRoot\src\Diagnostics.ps1"
 . "$Script:AppRoot\src\SpeedTest.ps1"
+. "$Script:AppRoot\src\Update.ps1"
 
 # Ensure export folder exists per settings
 $Script:Settings = Get-NcSettings -AppRoot $Script:AppRoot
@@ -137,10 +138,13 @@ $txtCliPath       = Get-Control 'txtCliPath'
 $btnBrowseCli     = Get-Control 'btnBrowseCli'
 $btnSaveSettings  = Get-Control 'btnSaveSettings'
 $chkAutoExport    = Get-Control 'chkAutoExport'
+$chkCheckUpdates  = Get-Control 'chkCheckUpdates'
 $rbLightMode      = Get-Control 'rbLightMode'
 $rbDarkMode       = Get-Control 'rbDarkMode'
 $btnCreateShortcut = Get-Control 'btnCreateShortcut'
 $btnRemoveShortcut = Get-Control 'btnRemoveShortcut'
+$btnCheckUpdates   = Get-Control 'btnCheckUpdates'
+$lblCurrentVersion = Get-Control 'lblCurrentVersion'
 
 # Cache controls (Footer & Contact)
 $lnkContact       = Get-Control 'lnkContact'
@@ -150,6 +154,15 @@ $lnkEmail         = Get-Control 'lnkEmail'
 $lnkLinkedIn      = Get-Control 'lnkLinkedIn'
 $imgQRCode        = Get-Control 'imgQRCode'
 $txtRevolutTag    = Get-Control 'txtRevolutTag'
+
+# Cache controls (Update Popup)
+$updateOverlay      = Get-Control 'updateOverlay'
+$btnCloseUpdate     = Get-Control 'btnCloseUpdate'
+$lblInstalledVersion = Get-Control 'lblInstalledVersion'
+$lblNewVersion      = Get-Control 'lblNewVersion'
+$lblUpdateStatus    = Get-Control 'lblUpdateStatus'
+$btnUpgrade         = Get-Control 'btnUpgrade'
+$btnLater           = Get-Control 'btnLater'
 
 # Load QR code image if it exists
 $qrCodePath = Join-Path $Script:AppRoot 'assets\revolut_qr.png'
@@ -166,6 +179,11 @@ if (Test-Path $qrCodePath) {
 $txtExportFolder.Text = $Script:Settings.ExportFolder
 $txtCliPath.Text      = $Script:Settings.OoklaCLIPath
 $chkAutoExport.IsChecked = [bool]$Script:Settings.AutoExportMorningCheck
+$chkCheckUpdates.IsChecked = [bool]$Script:Settings.CheckUpdatesOnStartup
+
+# Display current version
+$currentVersion = Get-NcCurrentVersion -AppRoot $Script:AppRoot
+$lblCurrentVersion.Text = "Current version: v$currentVersion"
 
 # Load theme preference
 if ($Script:Settings.PSObject.Properties['DarkMode']) {
@@ -455,6 +473,59 @@ function Refresh-NetworkInfoUi {
 }
 
 Refresh-NetworkInfoUi
+
+# Check for updates on startup (if enabled)
+if ($Script:Settings.CheckUpdatesOnStartup) {
+    # Run update check asynchronously to not block UI
+    $updateCheckJob = Start-Job -ScriptBlock {
+        param($appRoot)
+        # Source the Update module
+        . "$appRoot\src\Update.ps1"
+        # Check for updates
+        return Test-NcUpdateAvailable -AppRoot $appRoot
+    } -ArgumentList $Script:AppRoot
+    
+    # Poll for update check completion
+    $updateCheckTimer = New-Object System.Windows.Threading.DispatcherTimer
+    $updateCheckTimer.Interval = [TimeSpan]::FromMilliseconds(500)
+    $updateCheckTimer.Add_Tick({
+        param($timerSender, $timerArgs)
+        
+        if ($updateCheckJob.State -eq 'Completed') {
+            $timerSender.Stop()
+            
+            try {
+                $updateInfo = Receive-Job -Job $updateCheckJob
+                Remove-Job -Job $updateCheckJob -Force
+                
+                if ($updateInfo -and $updateInfo.UpdateAvailable) {
+                    # Show update popup
+                    $lblInstalledVersion.Text = "v$($updateInfo.CurrentVersion)"
+                    $lblNewVersion.Text = "v$($updateInfo.LatestVersion)"
+                    $lblUpdateStatus.Text = ""
+                    
+                    # Store release info for later use
+                    $window.Resources['UpdateInfo'] = $updateInfo
+                    
+                    # Show popup
+                    $updateOverlay.Visibility = 'Visible'
+                }
+                
+                # Update last check time
+                $Script:Settings.LastUpdateCheck = (Get-Date).ToString('o')
+                Save-NcSettings -AppRoot $Script:AppRoot -Settings $Script:Settings
+            }
+            catch {
+                Write-Host "Update check error: $($_.Exception.Message)"
+            }
+        }
+        elseif ($updateCheckJob.State -eq 'Failed') {
+            $timerSender.Stop()
+            Remove-Job -Job $updateCheckJob -Force -ErrorAction SilentlyContinue
+        }
+    })
+    $updateCheckTimer.Start()
+}
 
 # Job monitor timer
 $jobMonitor = New-Object System.Windows.Threading.DispatcherTimer
@@ -917,11 +988,109 @@ $btnSaveSettings.Add_Click({
         $Script:Settings.ExportFolder = $txtExportFolder.Text
         $Script:Settings.OoklaCLIPath = $txtCliPath.Text
         $Script:Settings.AutoExportMorningCheck = [bool]$chkAutoExport.IsChecked
+        $Script:Settings.CheckUpdatesOnStartup = [bool]$chkCheckUpdates.IsChecked
         $Script:Settings.DarkMode = [bool]$rbDarkMode.IsChecked
         Save-NcSettings -AppRoot $Script:AppRoot -Settings $Script:Settings
         [System.Windows.MessageBox]::Show('Settings saved.', 'Settings', [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information) | Out-Null
     } catch {
         [System.Windows.MessageBox]::Show("Failed to save settings: $($_.Exception.Message)", 'Settings', [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Error) | Out-Null
+    }
+})
+
+# Wire Update functionality
+$btnCheckUpdates.Add_Click({
+    try {
+        $btnCheckUpdates.IsEnabled = $false
+        $lblUpdateStatus.Text = "Checking for updates..."
+        
+        # Check for updates
+        $updateInfo = Test-NcUpdateAvailable -AppRoot $Script:AppRoot
+        
+        if ($updateInfo.Error) {
+            [System.Windows.MessageBox]::Show("Could not check for updates: $($updateInfo.Error)", 'Update Check', [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning) | Out-Null
+            $btnCheckUpdates.IsEnabled = $true
+            return
+        }
+        
+        if ($updateInfo.UpdateAvailable) {
+            # Show update popup
+            $lblInstalledVersion.Text = "v$($updateInfo.CurrentVersion)"
+            $lblNewVersion.Text = "v$($updateInfo.LatestVersion)"
+            $lblUpdateStatus.Text = ""
+            
+            # Store release info
+            $window.Resources['UpdateInfo'] = $updateInfo
+            
+            # Show popup
+            $updateOverlay.Visibility = 'Visible'
+        }
+        else {
+            [System.Windows.MessageBox]::Show("You are already running the latest version (v$($updateInfo.CurrentVersion)).", 'No Update Available', [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information) | Out-Null
+        }
+        
+        $btnCheckUpdates.IsEnabled = $true
+    }
+    catch {
+        $btnCheckUpdates.IsEnabled = $true
+        [System.Windows.MessageBox]::Show("Update check failed: $($_.Exception.Message)", 'Update Check', [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Error) | Out-Null
+    }
+})
+
+# Update popup handlers
+$btnCloseUpdate.Add_Click({
+    $updateOverlay.Visibility = 'Collapsed'
+})
+
+$btnLater.Add_Click({
+    $updateOverlay.Visibility = 'Collapsed'
+})
+
+$btnUpgrade.Add_Click({
+    try {
+        $updateInfo = $window.Resources['UpdateInfo']
+        if (-not $updateInfo) { return }
+        
+        # Disable buttons during update
+        $btnUpgrade.IsEnabled = $false
+        $btnLater.IsEnabled = $false
+        $lblUpdateStatus.Text = "Downloading update..."
+        
+        # Install update
+        $result = Install-NcUpdate -AppRoot $Script:AppRoot -DownloadUrl $updateInfo.ReleaseInfo.DownloadUrl -Version $updateInfo.LatestVersion
+        
+        if ($result.Success) {
+            $lblUpdateStatus.Text = "Update installed successfully!"
+            
+            # Ask to restart
+            $restartResult = [System.Windows.MessageBox]::Show(
+                "Update to v$($updateInfo.LatestVersion) installed successfully!`n`nThe application needs to restart to use the new version.`n`nRestart now?",
+                'Update Complete',
+                [System.Windows.MessageBoxButton]::YesNo,
+                [System.Windows.MessageBoxImage]::Information
+            )
+            
+            if ($restartResult -eq [System.Windows.MessageBoxResult]::Yes) {
+                # Restart the application
+                $Script:AllowClose = $true
+                Start-Process -FilePath 'powershell.exe' -ArgumentList "-ExecutionPolicy Bypass -WindowStyle Hidden -File `"$Script:AppRoot\NetworkCheckApp.ps1`""
+                $window.Close()
+            }
+            else {
+                $updateOverlay.Visibility = 'Collapsed'
+            }
+        }
+        else {
+            $lblUpdateStatus.Text = "Update failed: $($result.Error)"
+            [System.Windows.MessageBox]::Show("Update failed: $($result.Error)", 'Update Error', [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Error) | Out-Null
+            $btnUpgrade.IsEnabled = $true
+            $btnLater.IsEnabled = $true
+        }
+    }
+    catch {
+        $lblUpdateStatus.Text = "Update failed!"
+        [System.Windows.MessageBox]::Show("Update failed: $($_.Exception.Message)", 'Update Error', [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Error) | Out-Null
+        $btnUpgrade.IsEnabled = $true
+        $btnLater.IsEnabled = $true
     }
 })
 

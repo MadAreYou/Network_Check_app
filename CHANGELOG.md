@@ -1,5 +1,64 @@
 # Network Check - Version History
 
+## Version 1.0.2 (2025-11-09)
+
+### New Features
+- ✨ **Auto-Update System** - GitHub-integrated automatic updates
+  - Automatic update checks on startup (configurable)
+  - Manual update check via "Check for Updates" button in Settings
+  - One-click update installation with automatic download
+  - Version comparison and update notification popup
+  - Settings and exports preservation during updates
+  - GitHub API integration for release detection
+  
+- 🚀 **Hidden PowerShell Launcher** - VBScript wrapper for clean execution
+  - `Run-NetworkCheck.vbs` launches app without PowerShell console window
+  - Enhanced `Run-NetworkCheck.bat` with VBScript wrapper
+  - Professional user experience with no background windows
+
+### UI/UX Improvements
+- 📋 **Settings Tab Enhancements**
+  - "Check for Updates" button (bottom-left corner)
+  - Current version display (e.g., "Current version: v1.0.2")
+  - "Check for updates on startup" checkbox
+  - Cleaner layout with update section
+
+- 🔔 **Update Notification Popup**
+  - Modern popup design with version comparison
+  - Installed vs new version display
+  - "Upgrade Now" and "Later" buttons
+  - Real-time update status messages
+  - Automatic restart prompt after installation
+
+### Configuration
+- ⚙️ **New Settings Properties**
+  - `CheckUpdatesOnStartup` - Enable/disable auto-check (default: true)
+  - `LastUpdateCheck` - Timestamp of last update check
+  - Automatic backfill for existing installations
+
+### Technical Details
+- 📦 **Update Module** (`src\Update.ps1`)
+  - `Get-NcCurrentVersion` - Read version from Build-Config.json
+  - `Get-NcLatestRelease` - Query GitHub API for latest release
+  - `Compare-NcVersion` - Semantic version comparison
+  - `Test-NcUpdateAvailable` - Check if update available
+  - `Install-NcUpdate` - Download and install updates automatically
+  - Settings preservation during update process
+  - Async background update checks
+
+### Bug Fixes
+- 🔧 **XAML Structure** - Fixed Contact overlay corruption
+  - Restored missing Contact popup overlay
+  - Fixed XML nesting and structure
+  - Resolved "'x' is an undeclared prefix" parse error
+
+### Documentation
+- 📖 Updated README.md with auto-update features
+- 📖 Added UPDATE-FEATURE-GUIDE.md for users
+- 📖 Added technical documentation for update system
+
+---
+
 ## Version 1.0.1 (2025-11-08)
 
 ### Bug Fixes

@@ -1,11 +1,11 @@
 ﻿#  Network Check App
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
+![Version](https://img.shields.io/badge/version-1.0.2-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![PowerShell](https://img.shields.io/badge/PowerShell-5.1%2B-blue.svg)
 ![Platform](https://img.shields.io/badge/platform-Windows-lightgrey.svg)
 
-A modern, lightweight Windows desktop application for comprehensive network diagnostics and speed testing. Built with PowerShell and WPF, featuring a clean interface with dark mode support.
+A modern, lightweight Windows desktop application for comprehensive network diagnostics and speed testing. Built with PowerShell and WPF, featuring a clean interface with dark mode support and automatic updates.
 
 ##  Features
 
@@ -34,10 +34,18 @@ A modern, lightweight Windows desktop application for comprehensive network diag
 
 ###  Settings & Customization
 - **Light/Dark Mode** - Toggle between themes
+- **Auto-Update** - Automatic update checks with one-click installation
 - **Export Folder** - Configure where results are saved
 - **Desktop Shortcut** - Create/remove desktop shortcuts
 - **Ookla CLI Path** - Customize speedtest.exe location
 - Clean JSON-based configuration
+
+###  Auto-Update System
+- **Automatic Checks** - Check for updates on startup (configurable)
+- **Manual Checks** - Click "Check for Updates" in Settings
+- **One-Click Install** - Download and install updates automatically
+- **Settings Preservation** - Your config and exports are preserved
+- **GitHub Integration** - Updates pulled directly from releases
 
 ###  Contact & Support
 - Direct email and LinkedIn links
@@ -49,7 +57,7 @@ A modern, lightweight Windows desktop application for comprehensive network diag
 ### Option 1: Portable Release (Recommended)
 1. Download the latest `NetworkCheck-vX.X.X-Portable.zip` from [Releases](https://github.com/MadAreYou/Network_Check_app/releases)
 2. Extract to any folder
-3. Run `Run-NetworkCheck.bat`
+3. Double-click `Run-NetworkCheck.vbs` (no console window) or `Run-NetworkCheck.bat`
 
 ### Option 2: Clone Repository
 ```powershell
@@ -61,8 +69,9 @@ cd Network_Check_app
 ##  Quick Start
 
 1. **Launch the application**
-   - Double-click `Run-NetworkCheck.bat`
-   - Or right-click `NetworkCheckApp.ps1`  "Run with PowerShell"
+   - Double-click `Run-NetworkCheck.vbs` (recommended - no PowerShell window)
+   - Or double-click `Run-NetworkCheck.bat`
+   - Or right-click `NetworkCheckApp.ps1` → "Run with PowerShell"
 
 2. **Run a speed test**
    - Click the **Speed Test** tab
@@ -83,6 +92,8 @@ cd Network_Check_app
 5. **Customize settings**
    - Click the **Settings** tab
    - Configure export folder, theme, shortcuts
+   - Enable/disable auto-update checks
+   - Click "Check for Updates" for manual update check
    - Changes save automatically
 
 ##  Requirements
@@ -129,6 +140,8 @@ Edit `build/Build-Config.json`:
 ```
 Network_Check_app/
  NetworkCheckApp.ps1       # Main application entry point
+ Run-NetworkCheck.vbs     # VBScript launcher (no console window)
+ Run-NetworkCheck.bat     # Batch launcher
  config.json              # User configuration (auto-created)
  speedtest.exe            # Ookla Speedtest CLI (1.2MB)
  ui/
@@ -139,6 +152,7 @@ Network_Check_app/
     NetworkInfo.ps1      # Network information gathering
     Diagnostics.ps1      # Diagnostic tool implementations
     SpeedTest.ps1        # Speed test execution
+    Update.ps1           # Auto-update functionality
  assets/
     desktop_icon.ico     # Desktop shortcut icon
     revolut_qr.png       # Donation QR code (optional)
