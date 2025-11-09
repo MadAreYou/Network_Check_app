@@ -73,6 +73,20 @@ if (Test-Path $ConfigJsonPath) {
     Write-Host "      + config.json" -ForegroundColor Gray
 }
 
+# Copy Run-NetworkCheck.vbs launcher
+$VbsLauncherPath = Join-Path $ProjectRoot 'Run-NetworkCheck.vbs'
+if (Test-Path $VbsLauncherPath) {
+    Copy-Item $VbsLauncherPath -Destination $TempBuildFolder
+    Write-Host "      + Run-NetworkCheck.vbs" -ForegroundColor Gray
+}
+
+# Copy Run-NetworkCheck.bat launcher
+$BatLauncherPath = Join-Path $ProjectRoot 'Run-NetworkCheck.bat'
+if (Test-Path $BatLauncherPath) {
+    Copy-Item $BatLauncherPath -Destination $TempBuildFolder
+    Write-Host "      + Run-NetworkCheck.bat" -ForegroundColor Gray
+}
+
 # Copy src folder
 $SrcPath = Join-Path $ProjectRoot 'src'
 if (Test-Path $SrcPath) {
