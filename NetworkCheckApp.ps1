@@ -1070,9 +1070,19 @@ $btnUpgrade.Add_Click({
             )
             
             if ($restartResult -eq [System.Windows.MessageBoxResult]::Yes) {
-                # Restart the application
+                # Restart the application using VBScript launcher (hidden)
                 $Script:AllowClose = $true
-                Start-Process -FilePath 'powershell.exe' -ArgumentList "-ExecutionPolicy Bypass -WindowStyle Hidden -File `"$Script:AppRoot\NetworkCheckApp.ps1`""
+                
+                # Check if VBScript launcher exists, use it for hidden restart
+                $vbsLauncher = Join-Path $Script:AppRoot 'Run-NetworkCheck.vbs'
+                if (Test-Path -LiteralPath $vbsLauncher) {
+                    Start-Process -FilePath 'wscript.exe' -ArgumentList "`"$vbsLauncher`"" -WindowStyle Hidden
+                }
+                else {
+                    # Fallback to direct PowerShell launch
+                    Start-Process -FilePath 'powershell.exe' -ArgumentList "-ExecutionPolicy Bypass -WindowStyle Hidden -File `"$Script:AppRoot\NetworkCheckApp.ps1`"" -WindowStyle Hidden
+                }
+                
                 $window.Close()
             }
             else {

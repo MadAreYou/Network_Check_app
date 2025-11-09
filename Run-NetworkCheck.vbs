@@ -7,9 +7,9 @@ Dim objShell, strScriptPath, strPSPath, strCommand
 ' Get the directory where this VBS script is located
 strScriptPath = CreateObject("Scripting.FileSystemObject").GetParentFolderName(WScript.ScriptFullName)
 
-' Build the PowerShell command
+' Build the PowerShell command with -NoProfile and -WindowStyle Hidden
 strPSPath = strScriptPath & "\NetworkCheckApp.ps1"
-strCommand = "powershell.exe -ExecutionPolicy Bypass -WindowStyle Hidden -File """ & strPSPath & """"
+strCommand = "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -NonInteractive -File """ & strPSPath & """"
 
 ' Create shell object and run the command with window style = 0 (completely hidden)
 Set objShell = CreateObject("WScript.Shell")

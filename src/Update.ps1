@@ -3,12 +3,13 @@
 function Get-NcCurrentVersion {
     <#
     .SYNOPSIS
-    Retrieves the current version of the application from Build-Config.json
+    Retrieves the current version of the application
     #>
     param(
         [Parameter(Mandatory)] [string] $AppRoot
     )
     
+    # Try to read from Build-Config.json (dev environment)
     try {
         $configPath = Join-Path $AppRoot 'build\Build-Config.json'
         if (Test-Path -LiteralPath $configPath) {
@@ -16,11 +17,11 @@ function Get-NcCurrentVersion {
             return $buildConfig.Version
         }
     } catch {
-        # Fallback: try to read from a version.txt or return default
-        Write-Host "Warning: Could not read version from Build-Config.json: $($_.Exception.Message)"
+        # Silent fallback
     }
     
-    return "1.0.1"  # Default fallback version
+    # Fallback: Return hardcoded version (for portable releases)
+    return "1.0.2"
 }
 
 function Get-NcLatestRelease {
