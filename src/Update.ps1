@@ -1,4 +1,4 @@
-# Update.ps1 - Auto-update functionality for Network Check App
+# Update.ps1 - Auto-update functionality for ntchk (Network Toolkit)
 
 function Get-NcCurrentVersion {
     <#
@@ -21,13 +21,13 @@ function Get-NcCurrentVersion {
     }
     
     # Fallback: Return hardcoded version (for portable releases)
-    return "1.0.2"
+    return "1.0.3"
 }
 
 function Get-NcLatestRelease {
     <#
     .SYNOPSIS
-    Queries GitHub API for the latest release of Network Check App
+    Queries GitHub API for the latest release of ntchk
     .OUTPUTS
     Returns object with: Version, DownloadUrl, ReleaseNotes, PublishedDate
     #>
@@ -135,7 +135,7 @@ function Test-NcUpdateAvailable {
 function Install-NcUpdate {
     <#
     .SYNOPSIS
-    Downloads and installs the latest version of Network Check App
+    Downloads and installs the latest version of ntchk
     .DESCRIPTION
     Downloads the portable ZIP from GitHub, extracts it to the current app folder,
     preserving user settings and data.

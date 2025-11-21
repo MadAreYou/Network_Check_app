@@ -1,6 +1,6 @@
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Network Check" Height="650" Width="900"
+        Title="ntchk" Height="650" Width="900"
         WindowStartupLocation="CenterScreen"
         x:Name="mainWindow">
   <Window.Resources>
@@ -48,7 +48,7 @@
 
     <!-- Header -->
     <DockPanel Grid.Row="0" LastChildFill="True" Margin="10,10,10,8" Background="{DynamicResource ContentBackground}">
-      <TextBlock Text="Network Check" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource TextPrimary}" Margin="8,8,0,8"/>
+      <TextBlock Text="ntchk - Network Toolkit" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource TextPrimary}" Margin="8,8,0,8"/>
     </DockPanel>
 
     <TabControl Grid.Row="1" Background="{DynamicResource TabBackground}">

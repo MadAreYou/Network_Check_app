@@ -54,7 +54,7 @@ try {
         try {
             Add-Content -LiteralPath $logPath -Value ("[Dispatcher] " + (Get-Date).ToString('o') + " " + ($e.Exception | Out-String))
         } catch {}
-        try { [System.Windows.MessageBox]::Show("Unexpected error: " + $e.Exception.Message, 'Network Check', [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Error) | Out-Null } catch {}
+        try { [System.Windows.MessageBox]::Show("Unexpected error: " + $e.Exception.Message, 'ntchk', [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Error) | Out-Null } catch {}
         $e.Handled = $true
     }
     $window.Dispatcher.add_UnhandledException($handler)
@@ -468,7 +468,7 @@ function Refresh-NetworkInfoUi {
         $btnRefreshInfo.IsEnabled = $true
         $netInfoSpinnerTimer.Stop()
         $Script:IsRefreshingNetInfo = $false
-        [System.Windows.MessageBox]::Show("Failed to start network info refresh: $($_.Exception.Message)", 'Network Check', [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Error) | Out-Null
+        [System.Windows.MessageBox]::Show("Failed to start network info refresh: $($_.Exception.Message)", 'ntchk', [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Error) | Out-Null
     }
 }
 
@@ -936,7 +936,7 @@ $btnBrowseCli.Add_Click({
 $btnCreateShortcut.Add_Click({
     try {
         $desktopPath = [Environment]::GetFolderPath('Desktop')
-        $shortcutPath = Join-Path $desktopPath 'Network Check.lnk'
+        $shortcutPath = Join-Path $desktopPath 'ntchk.lnk'
         
         if (Test-Path $shortcutPath) {
             $result = [System.Windows.MessageBox]::Show('Desktop shortcut already exists. Overwrite?', 'Create Shortcut', [System.Windows.MessageBoxButton]::YesNo, [System.Windows.MessageBoxImage]::Question)
@@ -946,16 +946,24 @@ $btnCreateShortcut.Add_Click({
         $WshShell = New-Object -ComObject WScript.Shell
         $Shortcut = $WshShell.CreateShortcut($shortcutPath)
         
-        # Use VBScript launcher for hidden window
-        $vbsLauncher = Join-Path $Script:AppRoot 'Run-NetworkCheck.vbs'
-        if (Test-Path -LiteralPath $vbsLauncher) {
-            $Shortcut.TargetPath = 'wscript.exe'
-            $Shortcut.Arguments = "`"$vbsLauncher`""
+        # Use ntchk.exe launcher for hidden window (policy-friendly)
+        $exeLauncher = Join-Path $Script:AppRoot 'ntchk.exe'
+        if (Test-Path -LiteralPath $exeLauncher) {
+            $Shortcut.TargetPath = $exeLauncher
+            $Shortcut.Arguments = ""
         }
         else {
-            # Fallback to PowerShell if VBS not found
-            $Shortcut.TargetPath = 'powershell.exe'
-            $Shortcut.Arguments = "-ExecutionPolicy Bypass -WindowStyle Hidden -File `"$($Script:AppRoot)\NetworkCheckApp.ps1`""
+            # Fallback to BAT launcher if EXE not found
+            $batLauncher = Join-Path $Script:AppRoot 'ntchk.bat'
+            if (Test-Path -LiteralPath $batLauncher) {
+                $Shortcut.TargetPath = $batLauncher
+                $Shortcut.Arguments = ""
+            }
+            else {
+                # Last resort: direct PowerShell
+                $Shortcut.TargetPath = 'powershell.exe'
+                $Shortcut.Arguments = "-ExecutionPolicy Bypass -WindowStyle Hidden -File `"$($Script:AppRoot)\ntchk.ps1`""
+            }
         }
         
         $Shortcut.WorkingDirectory = $Script:AppRoot
@@ -965,10 +973,10 @@ $btnCreateShortcut.Add_Click({
         if (Test-Path $iconPath) {
             $Shortcut.IconLocation = $iconPath
         } else {
-            $Shortcut.IconLocation = "$($Script:AppRoot)\NetworkCheckApp.ps1,0"
+            $Shortcut.IconLocation = "$($Script:AppRoot)\ntchk.ps1,0"
         }
         
-        $Shortcut.Description = 'Network Speed Test and Diagnostics Tool'
+        $Shortcut.Description = 'ntchk - Network Toolkit'
         $Shortcut.Save()
         
         [System.Windows.MessageBox]::Show('Desktop shortcut created successfully!', 'Success', [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information) | Out-Null
@@ -980,7 +988,7 @@ $btnCreateShortcut.Add_Click({
 $btnRemoveShortcut.Add_Click({
     try {
         $desktopPath = [Environment]::GetFolderPath('Desktop')
-        $shortcutPath = Join-Path $desktopPath 'Network Check.lnk'
+        $shortcutPath = Join-Path $desktopPath 'ntchk.lnk'
         
         if (-not (Test-Path $shortcutPath)) {
             [System.Windows.MessageBox]::Show('No desktop shortcut found.', 'Remove Shortcut', [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information) | Out-Null
@@ -1081,17 +1089,24 @@ $btnUpgrade.Add_Click({
             )
             
             if ($restartResult -eq [System.Windows.MessageBoxResult]::Yes) {
-                # Restart the application using VBScript launcher (hidden)
+                # Restart the application using policy-friendly launcher
                 $Script:AllowClose = $true
                 
-                # Check if VBScript launcher exists, use it for hidden restart
-                $vbsLauncher = Join-Path $Script:AppRoot 'Run-NetworkCheck.vbs'
-                if (Test-Path -LiteralPath $vbsLauncher) {
-                    Start-Process -FilePath 'wscript.exe' -ArgumentList "`"$vbsLauncher`"" -WindowStyle Hidden
+                # Check if EXE launcher exists, use it for hidden restart
+                $exeLauncher = Join-Path $Script:AppRoot 'ntchk.exe'
+                if (Test-Path -LiteralPath $exeLauncher) {
+                    Start-Process -FilePath $exeLauncher -WindowStyle Hidden
                 }
                 else {
-                    # Fallback to direct PowerShell launch
-                    Start-Process -FilePath 'powershell.exe' -ArgumentList "-ExecutionPolicy Bypass -WindowStyle Hidden -File `"$Script:AppRoot\NetworkCheckApp.ps1`"" -WindowStyle Hidden
+                    # Fallback to BAT launcher
+                    $batLauncher = Join-Path $Script:AppRoot 'ntchk.bat'
+                    if (Test-Path -LiteralPath $batLauncher) {
+                        Start-Process -FilePath $batLauncher -WindowStyle Hidden
+                    }
+                    else {
+                        # Last resort: direct PowerShell launch
+                        Start-Process -FilePath 'powershell.exe' -ArgumentList "-ExecutionPolicy Bypass -WindowStyle Hidden -File `"$Script:AppRoot\ntchk.ps1`"" -WindowStyle Hidden
+                    }
                 }
                 
                 $window.Close()

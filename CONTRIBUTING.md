@@ -1,6 +1,6 @@
-# Contributing to Network Check App
+# Contributing to ntchk (Network Toolkit)
 
-Thank you for considering contributing to Network Check App! This document provides guidelines and instructions for contributing.
+Thank you for considering contributing to ntchk! This document provides guidelines and instructions for contributing.
 
 ## 🌟 How to Contribute
 
@@ -71,7 +71,7 @@ Feature suggestions are welcome! Please create an issue with:
 
 ### Project Structure
 
-- `NetworkCheckApp.ps1` - Main entry point, UI initialization
+- `ntchk.ps1` - Main entry point, UI initialization
 - `ui/MainWindow.xaml` - WPF interface (XAML only)
 - `src/*.ps1` - Modular functions (each file has specific purpose)
 - `build/` - Build scripts and configuration
