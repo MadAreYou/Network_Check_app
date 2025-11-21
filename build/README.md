@@ -1,4 +1,4 @@
-# Build System for Network Check
+# Build System for ntchk
 
 This folder contains the automated packaging system for creating portable distributions.
 
@@ -29,7 +29,7 @@ Edit `Build-Config.json` to customize:
 
 ```json
 {
-  "AppName": "Network Check",
+  "AppName": "ntchk",
   "Version": "1.0.0",           ← Update this for new releases
   "Author": "Juraj Madzunkov",
   "ExeName": "NetworkCheck.exe"
@@ -42,7 +42,7 @@ Edit `Build-Config.json` to customize:
 
 The build script automatically includes:
 
-✓ NetworkCheckApp.ps1 (main app)
+✓ ntchk.ps1 (main app)
 ✓ speedtest.exe (Ookla CLI)
 ✓ src\ (PowerShell modules)
 ✓ ui\ (XAML interface files)
