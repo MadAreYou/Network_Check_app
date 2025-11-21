@@ -39,8 +39,12 @@ function Get-NcLatestRelease {
     try {
         $apiUrl = "https://api.github.com/repos/$Owner/$Repo/releases/latest"
         
-        # Set TLS 1.2 for GitHub API
-        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+        # Set TLS 1.2 for GitHub API (required for GitHub)
+        try {
+            [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+        } catch {
+            # If setting TLS fails, try without it (might work on newer systems)
+        }
         
         # Query GitHub API
         $response = Invoke-RestMethod -Uri $apiUrl -Method Get -ErrorAction Stop -TimeoutSec 10
@@ -65,7 +69,7 @@ function Get-NcLatestRelease {
         }
     }
     catch {
-        Write-Host "Error checking for updates: $($_.Exception.Message)"
+        # Return null - error will be caught by Test-NcUpdateAvailable
         return $null
     }
 }
