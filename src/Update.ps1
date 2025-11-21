@@ -48,8 +48,8 @@ function Get-NcLatestRelease {
         # Extract version from tag (assumes format: v1.0.1 or 1.0.1)
         $version = $response.tag_name -replace '^v', ''
         
-        # Find the portable ZIP asset (NetworkCheck-vX.X.X-Portable.zip)
-        $zipAsset = $response.assets | Where-Object { $_.name -match 'NetworkCheck-v.*-Portable\.zip$' } | Select-Object -First 1
+        # Find the portable ZIP asset (ntchk-vX.X.X-Portable.zip or NetworkCheck-vX.X.X-Portable.zip for backward compatibility)
+        $zipAsset = $response.assets | Where-Object { $_.name -match '(ntchk|NetworkCheck)-v.*-Portable\.zip$' } | Select-Object -First 1
         
         if (-not $zipAsset) {
             throw "No portable release package found in latest release"
@@ -152,7 +152,7 @@ function Install-NcUpdate {
         New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
         
         # Download ZIP file
-        $zipPath = Join-Path $tempDir "NetworkCheck-v$Version-Portable.zip"
+        $zipPath = Join-Path $tempDir "ntchk-v$Version-Portable.zip"
         Write-Host "Downloading update from: $DownloadUrl"
         
         # Set TLS 1.2 for download
