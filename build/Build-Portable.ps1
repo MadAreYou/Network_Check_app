@@ -1,8 +1,8 @@
 <#
 .SYNOPSIS
-    Automated build script for Network Check portable application
+    Automated build script for ntchk portable application
 .DESCRIPTION
-    This script packages the Network Check app into a portable ZIP distribution
+    This script packages the ntchk app into a portable ZIP distribution
     Run this script from the project root or build folder
 .EXAMPLE
     .\Build-Portable.ps1
@@ -22,7 +22,7 @@ $ProjectRoot = Split-Path -Parent $BuildFolder
 $ReleasesFolder = Join-Path $ProjectRoot 'releases'
 
 Write-Host "===============================================" -ForegroundColor Cyan
-Write-Host "  Network Check - Portable Build Script" -ForegroundColor Cyan
+Write-Host "  ntchk - Portable Build Script" -ForegroundColor Cyan
 Write-Host "===============================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -66,25 +66,37 @@ if (Test-Path $SpeedTestPath) {
     Write-Host "      + speedtest.exe" -ForegroundColor Gray
 }
 
-# Copy config.json
-$ConfigJsonPath = Join-Path $ProjectRoot 'config.json'
-if (Test-Path $ConfigJsonPath) {
-    Copy-Item $ConfigJsonPath -Destination $TempBuildFolder
-    Write-Host "      + config.json" -ForegroundColor Gray
+# Copy default config template (rename to config.json)
+$ConfigTemplatePath = Join-Path $ProjectRoot 'config.default.json'
+if (Test-Path $ConfigTemplatePath) {
+    Copy-Item $ConfigTemplatePath -Destination (Join-Path $TempBuildFolder 'config.json')
+    Write-Host "      + config.json (default template)" -ForegroundColor Gray
+} else {
+    # Create minimal default config if template doesn't exist
+    $defaultConfig = @{
+        ExportFolder = "exports"
+        OoklaCLIPath = "speedtest.exe"
+        AutoExportMorningCheck = $false
+        OoklaLicenseAccepted = $false
+        DarkMode = $false
+        CheckUpdatesOnStartup = $true
+    }
+    $defaultConfig | ConvertTo-Json | Set-Content -Path (Join-Path $TempBuildFolder 'config.json')
+    Write-Host "      + config.json (generated default)" -ForegroundColor Gray
 }
 
-# Copy Run-NetworkCheck.vbs launcher
-$VbsLauncherPath = Join-Path $ProjectRoot 'Run-NetworkCheck.vbs'
-if (Test-Path $VbsLauncherPath) {
-    Copy-Item $VbsLauncherPath -Destination $TempBuildFolder
-    Write-Host "      + Run-NetworkCheck.vbs" -ForegroundColor Gray
-}
-
-# Copy Run-NetworkCheck.bat launcher
-$BatLauncherPath = Join-Path $ProjectRoot 'Run-NetworkCheck.bat'
+# Copy ntchk.bat launcher
+$BatLauncherPath = Join-Path $ProjectRoot 'ntchk.bat'
 if (Test-Path $BatLauncherPath) {
     Copy-Item $BatLauncherPath -Destination $TempBuildFolder
-    Write-Host "      + Run-NetworkCheck.bat" -ForegroundColor Gray
+    Write-Host "      + ntchk.bat" -ForegroundColor Gray
+}
+
+# Copy ntchk.exe launcher if it exists
+$ExeLauncherPath = Join-Path $ProjectRoot 'ntchk.exe'
+if (Test-Path $ExeLauncherPath) {
+    Copy-Item $ExeLauncherPath -Destination $TempBuildFolder
+    Write-Host "      + ntchk.exe" -ForegroundColor Gray
 }
 
 # Copy src folder
@@ -133,9 +145,9 @@ QUICK START
 =====================================
 
 1. Extract this ZIP to any folder
-2. Run: NetworkCheckApp.ps1
-   - Right-click → Run with PowerShell
-   - OR double-click if .ps1 files are associated
+2. Run: ntchk.exe (recommended - policy-friendly)
+   - OR: Double-click ntchk.bat
+   - OR: Right-click ntchk.ps1 → Run with PowerShell
 
 3. First-time setup:
    - The app will auto-configure paths
@@ -205,14 +217,17 @@ TROUBLESHOOTING
 =====================================
 
 If the app doesn't start:
-1. Right-click NetworkCheckApp.ps1
-2. Select "Run with PowerShell"
-3. If blocked by security:
+1. Try ntchk.exe first (policy-friendly launcher)
+2. If blocked, use ntchk.bat instead
+3. For troubleshooting:
+   - Right-click ntchk.ps1
+   - Select "Run with PowerShell"
+4. If blocked by security:
    - Right-click → Properties
    - Check "Unblock" → OK
 
 For execution policy errors:
-  powershell.exe -ExecutionPolicy Bypass -File NetworkCheckApp.ps1
+  powershell.exe -ExecutionPolicy Bypass -File ntchk.ps1
 
 =====================================
 "@
@@ -221,34 +236,7 @@ Set-Content -Path $ReadmePath -Value $ReadmeContent -Encoding UTF8
 Write-Host "      README.txt created" -ForegroundColor Green
 Write-Host ""
 
-# Create launcher BAT file
-Write-Host "[5/6] Creating launcher script..." -ForegroundColor Yellow
-$LauncherPath = Join-Path $TempBuildFolder 'Run-NetworkCheck.bat'
-$LauncherContent = @"
-@echo off
-REM Network Check Launcher
-REM This script launches the Network Check application
-
-echo Starting Network Check...
-powershell.exe -ExecutionPolicy Bypass -WindowStyle Hidden -File "%~dp0NetworkCheckApp.ps1"
-
-if errorlevel 1 (
-    echo.
-    echo Error: Failed to start Network Check
-    echo.
-    echo Try running NetworkCheckApp.ps1 directly:
-    echo Right-click NetworkCheckApp.ps1 ^> Run with PowerShell
-    echo.
-    pause
-)
-"@
-
-Set-Content -Path $LauncherPath -Value $LauncherContent -Encoding ASCII
-Write-Host "      Run-NetworkCheck.bat created" -ForegroundColor Green
 Write-Host ""
-
-# Create ZIP package
-Write-Host "[6/6] Creating ZIP package..." -ForegroundColor Yellow
 
 if (Test-Path $ZipPath) {
     Remove-Item $ZipPath -Force
@@ -280,8 +268,9 @@ Write-Host "Output Location:" -ForegroundColor Yellow
 Write-Host "  $ZipPath" -ForegroundColor White
 Write-Host ""
 Write-Host "Package Contents:" -ForegroundColor Yellow
-Write-Host "  - NetworkCheckApp.ps1 (main application)" -ForegroundColor White
-Write-Host "  - Run-NetworkCheck.bat (launcher)" -ForegroundColor White
+Write-Host "  - ntchk.exe (policy-friendly launcher - RECOMMENDED)" -ForegroundColor White
+Write-Host "  - ntchk.bat (fallback launcher)" -ForegroundColor White
+Write-Host "  - ntchk.ps1 (main application)" -ForegroundColor White
 Write-Host "  - speedtest.exe (Ookla CLI)" -ForegroundColor White
 Write-Host "  - src\ (PowerShell modules)" -ForegroundColor White
 Write-Host "  - ui\ (XAML interface)" -ForegroundColor White

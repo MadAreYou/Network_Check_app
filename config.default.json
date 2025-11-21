@@ -1,0 +1,8 @@
+{
+    "ExportFolder":  "exports",
+    "OoklaCLIPath":  "speedtest.exe",
+    "AutoExportMorningCheck":  false,
+    "OoklaLicenseAccepted":  false,
+    "DarkMode":  false,
+    "CheckUpdatesOnStartup":  true
+}
