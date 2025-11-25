@@ -1197,18 +1197,18 @@ $btnUpgrade.Add_Click({
     try {
         $updateInfo = $window.Resources['UpdateInfo']
         if (-not $updateInfo) { return }
-        
+
         # Disable buttons during update
         $btnUpgrade.IsEnabled = $false
         $btnLater.IsEnabled = $false
         $lblUpdateStatus.Text = "Downloading update..."
-        
-        # Install update (downloads and prepares updater script)
+
+        # Install update (downloads to 'extracted' folder)
         $result = Install-NcUpdate -AppRoot $Script:AppRoot -DownloadUrl $updateInfo.ReleaseInfo.DownloadUrl -Version $updateInfo.LatestVersion
-        
+
         if ($result.Success) {
             $lblUpdateStatus.Text = "Update ready to install!"
-            
+
             # Ask to install and restart
             $restartResult = [System.Windows.MessageBox]::Show(
                 "Update to v$($updateInfo.LatestVersion) has been downloaded!`n`nThe application will close, install the update, and restart automatically.`n`nContinue?",
@@ -1216,11 +1216,11 @@ $btnUpgrade.Add_Click({
                 [System.Windows.MessageBoxButton]::YesNo,
                 [System.Windows.MessageBoxImage]::Information
             )
-            
+
             if ($restartResult -eq [System.Windows.MessageBoxResult]::Yes) {
-                # Start the updater script (hidden window, runs AFTER app closes)
-                Start-Process -FilePath 'powershell.exe' -ArgumentList "-ExecutionPolicy Bypass -WindowStyle Hidden -File `"$($result.UpdaterScript)`"" -WindowStyle Hidden
-                
+                # Start the updater script (hidden window)
+                Start-Process -FilePath 'powershell.exe' -ArgumentList "-ExecutionPolicy Bypass -WindowStyle Hidden -File `"$($result.UpdaterScript)`""
+
                 # Close the app to release file locks
                 $Script:AllowClose = $true
                 $window.Close()
@@ -1232,8 +1232,10 @@ $btnUpgrade.Add_Click({
             }
         }
         else {
-            $lblUpdateStatus.Text = "Update failed: $($result.Error)"
-            [System.Windows.MessageBox]::Show("Update failed: $($result.Error)", 'Update Error', [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Error) | Out-Null
+            $lblUpdateStatus.Text = "Update failed!"
+            $debugLog = Join-Path $Script:AppRoot "upgrade-debug.log"
+            $errorMsg = "Update failed: $($result.Error)`n`nDebug log saved to:`n$debugLog"
+            [System.Windows.MessageBox]::Show($errorMsg, 'Update Error', [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Error) | Out-Null
             $btnUpgrade.IsEnabled = $true
             $btnLater.IsEnabled = $true
         }

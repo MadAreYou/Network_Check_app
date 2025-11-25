@@ -9,7 +9,20 @@ function Get-NcCurrentVersion {
         [Parameter(Mandatory)] [string] $AppRoot
     )
     
-    # Try to read from Build-Config.json (dev environment)
+    # Priority 1: Read from version.txt (portable releases)
+    try {
+        $versionFile = Join-Path $AppRoot 'version.txt'
+        if (Test-Path -LiteralPath $versionFile) {
+            $version = (Get-Content -LiteralPath $versionFile -Raw).Trim()
+            if ($version -match '^\d+\.\d+\.\d+$') {
+                return $version
+            }
+        }
+    } catch {
+        # Silent fallback
+    }
+    
+    # Priority 2: Read from Build-Config.json (dev environment)
     try {
         $configPath = Join-Path $AppRoot 'build\Build-Config.json'
         if (Test-Path -LiteralPath $configPath) {
@@ -20,8 +33,8 @@ function Get-NcCurrentVersion {
         # Silent fallback
     }
     
-    # Fallback: Return hardcoded version (for portable releases)
-    return "1.0.4"
+    # Fallback: Return default version (should never reach here)
+    return "1.0.0"
 }
 
 function Get-NcLatestRelease {
@@ -139,14 +152,11 @@ function Test-NcUpdateAvailable {
 function Install-NcUpdate {
     <#
     .SYNOPSIS
-    Downloads and installs the latest version of ntchk
+    Downloads and installs the latest version of ntchk in-place (portable mode)
     .DESCRIPTION
-    Downloads the portable ZIP from GitHub, extracts it to a temp location,
-    then creates a self-destructing updater script that will:
-    1. Wait for the app to close
-    2. Overwrite files (without file locks)
-    3. Restart the app
-    4. Delete itself
+    Downloads the portable ZIP, extracts to "extracted" folder in the app directory,
+    then copies files to the main folder (preserving config.json and exports).
+    The app must be closed during file copy to avoid file locks.
     #>
     param(
         [Parameter(Mandatory)] [string] $AppRoot,
@@ -154,127 +164,196 @@ function Install-NcUpdate {
         [Parameter(Mandatory)] [string] $Version
     )
     
+    # Debug log in app folder
+    $debugLog = Join-Path $AppRoot "upgrade-debug.log"
+    $timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
+    Add-Content -Path $debugLog -Value "`n=== [$timestamp] Install-NcUpdate Started ===" -Force
+    Add-Content -Path $debugLog -Value "AppRoot: $AppRoot" -Force
+    Add-Content -Path $debugLog -Value "DownloadUrl: $DownloadUrl" -Force
+    Add-Content -Path $debugLog -Value "Version: $Version" -Force
+    
     try {
-        # Create temp directory for download
-        $tempDir = Join-Path $env:TEMP "NetworkCheck_Update_$([guid]::NewGuid().ToString('N'))"
-        New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
+        # Create "extracted" folder in app directory (portable approach)
+        $extractedFolder = Join-Path $AppRoot "extracted"
+        Add-Content -Path $debugLog -Value "Creating extracted folder: $extractedFolder" -Force
         
-        # Download ZIP file
-        $zipPath = Join-Path $tempDir "ntchk-v$Version-Portable.zip"
-        Write-Host "Downloading update from: $DownloadUrl"
+        # Clean up old extracted folder if exists
+        if (Test-Path $extractedFolder) {
+            Remove-Item -Path $extractedFolder -Recurse -Force -ErrorAction SilentlyContinue
+            Add-Content -Path $debugLog -Value "Removed old extracted folder" -Force
+        }
         
-        # Set TLS 1.2 for download
+        New-Item -ItemType Directory -Path $extractedFolder -Force | Out-Null
+        Add-Content -Path $debugLog -Value "Extracted folder created" -Force
+        
+        # Download ZIP file to extracted folder
+        $zipPath = Join-Path $extractedFolder "ntchk-v$Version-Portable.zip"
+        Add-Content -Path $debugLog -Value "Downloading to: $zipPath" -Force
+        
+        # Set TLS 1.2 for GitHub downloads
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
         
-        # Download with progress (if possible)
+        # Download
         $webClient = New-Object System.Net.WebClient
         $webClient.DownloadFile($DownloadUrl, $zipPath)
         $webClient.Dispose()
+        
+        Add-Content -Path $debugLog -Value "Download completed" -Force
         
         if (-not (Test-Path $zipPath)) {
             throw "Download failed - ZIP file not found"
         }
         
-        Write-Host "Download complete. Extracting..."
+        $zipSize = (Get-Item $zipPath).Length
+        Add-Content -Path $debugLog -Value "ZIP exists, size: $zipSize bytes" -Force
         
-        # Extract to temp location
-        $extractPath = Join-Path $tempDir "extracted"
+        # Extract ZIP directly to extracted folder
+        Add-Content -Path $debugLog -Value "Extracting ZIP..." -Force
         Add-Type -AssemblyName System.IO.Compression.FileSystem
-        [System.IO.Compression.ZipFile]::ExtractToDirectory($zipPath, $extractPath)
+        [System.IO.Compression.ZipFile]::ExtractToDirectory($zipPath, $extractedFolder)
+        
+        Add-Content -Path $debugLog -Value "Extraction complete" -Force
+        
+        # Delete the ZIP file (no longer needed)
+        Remove-Item -Path $zipPath -Force -ErrorAction SilentlyContinue
+        Add-Content -Path $debugLog -Value "ZIP file deleted" -Force
+        
+        # CRITICAL FIX: GitHub ZIP contains nested folder (ntchk-v1.0.5-Portable/)
+        # We need to flatten it so files are directly in extracted/ folder
+        $nestedFolder = Get-ChildItem $extractedFolder -Directory | Where-Object { $_.Name -match '^ntchk-v.*-Portable$' } | Select-Object -First 1
+        if ($nestedFolder) {
+            Add-Content -Path $debugLog -Value "Detected nested folder: $($nestedFolder.Name) - flattening structure..." -Force
+            
+            # Move all files from nested folder to extracted root
+            $nestedPath = $nestedFolder.FullName
+            Get-ChildItem $nestedPath -Recurse | ForEach-Object {
+                $relativePath = $_.FullName.Substring($nestedPath.Length + 1)
+                $targetPath = Join-Path $extractedFolder $relativePath
+                
+                if ($_.PSIsContainer) {
+                    if (-not (Test-Path $targetPath)) {
+                        New-Item -ItemType Directory -Path $targetPath -Force | Out-Null
+                    }
+                } else {
+                    $targetDir = Split-Path $targetPath -Parent
+                    if (-not (Test-Path $targetDir)) {
+                        New-Item -ItemType Directory -Path $targetDir -Force | Out-Null
+                    }
+                    Move-Item -LiteralPath $_.FullName -Destination $targetPath -Force
+                }
+            }
+            
+            # Remove now-empty nested folder
+            Remove-Item -Path $nestedPath -Recurse -Force -ErrorAction SilentlyContinue
+            Add-Content -Path $debugLog -Value "Flattening complete - nested folder removed" -Force
+        } else {
+            Add-Content -Path $debugLog -Value "No nested folder detected - structure is correct" -Force
+        }
+        
+        # Verify extraction
+        $extractedFiles = Get-ChildItem $extractedFolder -Recurse -File
+        Add-Content -Path $debugLog -Value "Extracted file count: $($extractedFiles.Count)" -Force
         
         # Backup current config.json (preserve user settings)
+        Add-Content -Path $debugLog -Value "Backing up config..." -Force
         $currentConfig = Join-Path $AppRoot 'config.json'
-        $backupConfigPath = Join-Path $tempDir 'config_backup.json'
+        $backupConfig = Join-Path $extractedFolder 'config_backup.json'
         if (Test-Path $currentConfig) {
-            Copy-Item -LiteralPath $currentConfig -Destination $backupConfigPath -Force
-            Write-Host "Backed up user settings"
+            Copy-Item -LiteralPath $currentConfig -Destination $backupConfig -Force
+            Add-Content -Path $debugLog -Value "Config backed up" -Force
         }
         
         # Create updater script that runs AFTER app closes
-        $updaterScript = Join-Path $tempDir 'updater.ps1'
+        Add-Content -Path $debugLog -Value "Creating updater script..." -Force
+        $updaterScript = Join-Path $AppRoot 'updater.ps1'
         
         $updaterCode = @"
-# ntchk Auto-Updater Script
-# This script runs after the app closes to avoid file locking issues
+# ntchk Auto-Updater Script (Portable Mode)
+# Copies files from 'extracted' folder to app root after app closes
 
-`$ErrorActionPreference = 'Stop'
+`$ErrorActionPreference = 'Continue'
+`$logFile = Join-Path '$AppRoot' 'update.log'
 
-# Wait for parent process to exit (max 10 seconds)
-Start-Sleep -Seconds 2
-
-Write-Host 'Installing update...'
-
-# Source and destination paths
-`$extractPath = '$extractPath'
-`$appRoot = '$AppRoot'
-`$backupConfig = '$backupConfigPath'
+function Write-Log {
+    param([string]`$Message)
+    `$timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
+    Add-Content -Path `$logFile -Value "[`$timestamp] `$Message" -Force
+}
 
 try {
-    # Copy new files to app root (overwrite existing)
-    `$newFiles = Get-ChildItem -Path `$extractPath -Recurse
+    Write-Log '=== ntchk Auto-Update Started ==='
+    Write-Log 'Waiting 3 seconds for app to close...'
+    Start-Sleep -Seconds 3
     
-    foreach (`$file in `$newFiles) {
-        `$relativePath = `$file.FullName.Substring(`$extractPath.Length + 1)
-        `$targetPath = Join-Path `$appRoot `$relativePath
+    `$extractedFolder = Join-Path '$AppRoot' 'extracted'
+    `$backupConfig = Join-Path `$extractedFolder 'config_backup.json'
+    
+    Write-Log "Extracted folder: `$extractedFolder"
+    
+    if (-not (Test-Path `$extractedFolder)) {
+        throw "Extracted folder not found"
+    }
+    
+    `$allFiles = Get-ChildItem `$extractedFolder -Recurse -File | Where-Object { `$_.Name -ne 'config_backup.json' }
+    Write-Log "Files to copy: `$(`$allFiles.Count)"
+    
+    `$copiedCount = 0
+    `$skippedCount = 0
+    
+    foreach (`$file in `$allFiles) {
+        `$relativePath = `$file.FullName.Substring(`$extractedFolder.Length + 1)
+        `$targetPath = Join-Path '$AppRoot' `$relativePath
         
-        # Skip exports folder and user config during copy
-        if (`$relativePath -like 'exports\*') { continue }
-        if (`$relativePath -eq 'config.json') { continue }
-        
-        if (`$file.PSIsContainer) {
-            # Create directory if it doesn't exist
-            if (-not (Test-Path `$targetPath)) {
-                New-Item -ItemType Directory -Path `$targetPath -Force | Out-Null
+        try {
+            if (`$relativePath -eq 'config.json' -or `$relativePath -like 'exports\\*' -or `$relativePath -like 'exports/*') {
+                `$skippedCount++
+                continue
             }
-        }
-        else {
-            # Copy file (overwrite) - files are now unlocked
+            
+            `$parentDir = Split-Path `$targetPath -Parent
+            if (-not (Test-Path `$parentDir)) {
+                New-Item -ItemType Directory -Path `$parentDir -Force | Out-Null
+            }
+            
             Copy-Item -LiteralPath `$file.FullName -Destination `$targetPath -Force
-            Write-Host "  Updated: `$relativePath"
+            `$copiedCount++
+        }
+        catch {
+            Write-Log "ERROR: `$relativePath - `$(`$_.Exception.Message)"
         }
     }
     
-    # Restore user config
+    Write-Log "Copied: `$copiedCount, Skipped: `$skippedCount"
+    
     if (Test-Path `$backupConfig) {
-        `$userConfig = Join-Path `$appRoot 'config.json'
-        Copy-Item -LiteralPath `$backupConfig -Destination `$userConfig -Force
-        Write-Host 'Restored user settings'
+        Copy-Item -LiteralPath `$backupConfig -Destination (Join-Path '$AppRoot' 'config.json') -Force
+        Write-Log 'Restored config.json'
     }
     
-    Write-Host 'Update complete! Restarting app...'
+    Write-Log 'Cleaning up extracted folder...'
+    Remove-Item -Path `$extractedFolder -Recurse -Force -ErrorAction SilentlyContinue
     
-    # Restart the application using policy-friendly launcher
-    `$exeLauncher = Join-Path `$appRoot 'ntchk.exe'
-    if (Test-Path -LiteralPath `$exeLauncher) {
+    Write-Log 'Restarting app...'
+    `$exeLauncher = Join-Path '$AppRoot' 'ntchk.exe'
+    if (Test-Path `$exeLauncher) {
         Start-Process -FilePath `$exeLauncher
     }
-    else {
-        # Fallback to BAT launcher
-        `$batLauncher = Join-Path `$appRoot 'ntchk.bat'
-        if (Test-Path -LiteralPath `$batLauncher) {
-            Start-Process -FilePath `$batLauncher
-        }
-        else {
-            # Last resort: direct PowerShell launch
-            Start-Process -FilePath 'powershell.exe' -ArgumentList "-ExecutionPolicy Bypass -File ```"`$appRoot\ntchk.ps1```""
-        }
-    }
     
-    # Cleanup temp files after a delay (allow restart to complete)
-    Start-Sleep -Seconds 2
-    Remove-Item -Path '$tempDir' -Recurse -Force -ErrorAction SilentlyContinue
-    
-    Write-Host 'Update process completed successfully!'
+    Write-Log '=== Update completed successfully ==='
 }
 catch {
-    Write-Host "Update failed: `$(`$_.Exception.Message)"
-    [System.Windows.MessageBox]::Show("Update failed: `$(`$_.Exception.Message)", 'Update Error', [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Error) | Out-Null
-    Read-Host 'Press Enter to exit'
+    Write-Log "CRITICAL ERROR: `$(`$_.Exception.Message)"
 }
+
+Write-Log 'Deleting updater script...'
+Start-Sleep -Seconds 2
+Remove-Item -LiteralPath `$MyInvocation.MyCommand.Path -Force -ErrorAction SilentlyContinue
 "@
         
         Set-Content -Path $updaterScript -Value $updaterCode -Encoding UTF8
-        Write-Host "Created updater script"
+        Add-Content -Path $debugLog -Value "Updater script created at: $updaterScript" -Force
+        
+        Add-Content -Path $debugLog -Value "=== Install-NcUpdate completed successfully ===" -Force
         
         return [pscustomobject]@{
             Success = $true
@@ -284,14 +363,31 @@ catch {
         }
     }
     catch {
-        # Cleanup on error
-        if (Test-Path $tempDir) {
-            Remove-Item -Path $tempDir -Recurse -Force -ErrorAction SilentlyContinue
+        # Log error to app folder
+        $debugLog = Join-Path $AppRoot "upgrade-debug.log"
+        $timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
+        
+        try {
+            Add-Content -Path $debugLog -Value "`n=== [$timestamp] Install-NcUpdate FAILED ===" -Force -ErrorAction Stop
+            Add-Content -Path $debugLog -Value "Error: $($_.Exception.Message)" -Force -ErrorAction Stop
+            Add-Content -Path $debugLog -Value "Error Type: $($_.Exception.GetType().FullName)" -Force -ErrorAction Stop
+            Add-Content -Path $debugLog -Value "Stack Trace: $($_.ScriptStackTrace)" -Force -ErrorAction Stop
+        }
+        catch {
+            [System.Windows.MessageBox]::Show("Critical error: $($_.Exception.Message)", 'Debug Error', [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Error) | Out-Null
+        }
+        
+        # Cleanup extracted folder on error
+        $extractedFolder = Join-Path $AppRoot "extracted"
+        if (Test-Path $extractedFolder) {
+            Add-Content -Path $debugLog -Value "Cleaning up extracted folder..." -Force -ErrorAction SilentlyContinue
+            Remove-Item -Path $extractedFolder -Recurse -Force -ErrorAction SilentlyContinue
+            Add-Content -Path $debugLog -Value "Extracted folder deleted" -Force -ErrorAction SilentlyContinue
         }
         
         return [pscustomobject]@{
             Success = $false
-            Message = "Update failed"
+            Message = "Update failed: $($_.Exception.Message)"
             Error = $_.Exception.Message
             UpdaterScript = $null
         }
