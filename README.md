@@ -1,6 +1,6 @@
 ﻿#  ntchk - Network Toolkit
 
-![Version](https://img.shields.io/badge/version-1.0.4-blue.svg)
+![Version](https://img.shields.io/badge/version-1.0.5-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![PowerShell](https://img.shields.io/badge/PowerShell-5.1%2B-blue.svg)
 ![Platform](https://img.shields.io/badge/platform-Windows-lightgrey.svg)
@@ -28,7 +28,10 @@ A modern, lightweight, **policy-friendly** Windows desktop application for compr
 - Clean, organized display
 
 ###  Diagnostics Tools
+- **Ping** - Test connectivity and latency to any host
+- **Nslookup** - DNS query and hostname resolution
 - **Traceroute** - Trace network path to any host
+- **Port Scanner** - Scan single or multiple ports on any host
 - **DNS Cache Flush** - Clear DNS resolver cache
 - **IP Release/Renew** - Refresh DHCP configuration
 - **Winsock Reset** - Fix network stack issues
@@ -201,7 +204,7 @@ ntchk/
 ### Network Information
 <img src="screenshots/network-info.png" alt="Network Info" width="600">
 
-### Diagnostics Tools
+### Diagnostics Tools (including Port Scanner)
 <img src="screenshots/diagnostics.png" alt="Diagnostics" width="600">
 
 ### Settings Panel
