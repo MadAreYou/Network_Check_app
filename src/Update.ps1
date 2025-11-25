@@ -141,8 +141,12 @@ function Install-NcUpdate {
     .SYNOPSIS
     Downloads and installs the latest version of ntchk
     .DESCRIPTION
-    Downloads the portable ZIP from GitHub, extracts it to the current app folder,
-    preserving user settings and data.
+    Downloads the portable ZIP from GitHub, extracts it to a temp location,
+    then creates a self-destructing updater script that will:
+    1. Wait for the app to close
+    2. Overwrite files (without file locks)
+    3. Restart the app
+    4. Delete itself
     #>
     param(
         [Parameter(Mandatory)] [string] $AppRoot,
@@ -180,53 +184,103 @@ function Install-NcUpdate {
         
         # Backup current config.json (preserve user settings)
         $currentConfig = Join-Path $AppRoot 'config.json'
-        $backupConfig = $null
+        $backupConfigPath = Join-Path $tempDir 'config_backup.json'
         if (Test-Path $currentConfig) {
-            $backupConfig = Get-Content -LiteralPath $currentConfig -Raw
+            Copy-Item -LiteralPath $currentConfig -Destination $backupConfigPath -Force
             Write-Host "Backed up user settings"
         }
         
-        # Backup exports folder path (don't overwrite user exports)
-        $exportsFolder = Join-Path $AppRoot 'exports'
+        # Create updater script that runs AFTER app closes
+        $updaterScript = Join-Path $tempDir 'updater.ps1'
         
-        # Copy new files to app root (overwrite existing)
-        Write-Host "Installing new version..."
-        $newFiles = Get-ChildItem -Path $extractPath -Recurse
+        $updaterCode = @"
+# ntchk Auto-Updater Script
+# This script runs after the app closes to avoid file locking issues
+
+`$ErrorActionPreference = 'Stop'
+
+# Wait for parent process to exit (max 10 seconds)
+Start-Sleep -Seconds 2
+
+Write-Host 'Installing update...'
+
+# Source and destination paths
+`$extractPath = '$extractPath'
+`$appRoot = '$AppRoot'
+`$backupConfig = '$backupConfigPath'
+
+try {
+    # Copy new files to app root (overwrite existing)
+    `$newFiles = Get-ChildItem -Path `$extractPath -Recurse
+    
+    foreach (`$file in `$newFiles) {
+        `$relativePath = `$file.FullName.Substring(`$extractPath.Length + 1)
+        `$targetPath = Join-Path `$appRoot `$relativePath
         
-        foreach ($file in $newFiles) {
-            $relativePath = $file.FullName.Substring($extractPath.Length + 1)
-            $targetPath = Join-Path $AppRoot $relativePath
-            
-            # Skip exports folder and user config
-            if ($relativePath -like 'exports\*') { continue }
-            if ($relativePath -eq 'config.json') { continue }
-            
-            if ($file.PSIsContainer) {
-                # Create directory if it doesn't exist
-                if (-not (Test-Path $targetPath)) {
-                    New-Item -ItemType Directory -Path $targetPath -Force | Out-Null
-                }
-            }
-            else {
-                # Copy file (overwrite)
-                Copy-Item -LiteralPath $file.FullName -Destination $targetPath -Force
-                Write-Host "  Updated: $relativePath"
+        # Skip exports folder and user config during copy
+        if (`$relativePath -like 'exports\*') { continue }
+        if (`$relativePath -eq 'config.json') { continue }
+        
+        if (`$file.PSIsContainer) {
+            # Create directory if it doesn't exist
+            if (-not (Test-Path `$targetPath)) {
+                New-Item -ItemType Directory -Path `$targetPath -Force | Out-Null
             }
         }
-        
-        # Restore user config
-        if ($backupConfig) {
-            Set-Content -LiteralPath $currentConfig -Value $backupConfig -Encoding UTF8
-            Write-Host "Restored user settings"
+        else {
+            # Copy file (overwrite) - files are now unlocked
+            Copy-Item -LiteralPath `$file.FullName -Destination `$targetPath -Force
+            Write-Host "  Updated: `$relativePath"
         }
+    }
+    
+    # Restore user config
+    if (Test-Path `$backupConfig) {
+        `$userConfig = Join-Path `$appRoot 'config.json'
+        Copy-Item -LiteralPath `$backupConfig -Destination `$userConfig -Force
+        Write-Host 'Restored user settings'
+    }
+    
+    Write-Host 'Update complete! Restarting app...'
+    
+    # Restart the application using policy-friendly launcher
+    `$exeLauncher = Join-Path `$appRoot 'ntchk.exe'
+    if (Test-Path -LiteralPath `$exeLauncher) {
+        Start-Process -FilePath `$exeLauncher
+    }
+    else {
+        # Fallback to BAT launcher
+        `$batLauncher = Join-Path `$appRoot 'ntchk.bat'
+        if (Test-Path -LiteralPath `$batLauncher) {
+            Start-Process -FilePath `$batLauncher
+        }
+        else {
+            # Last resort: direct PowerShell launch
+            Start-Process -FilePath 'powershell.exe' -ArgumentList "-ExecutionPolicy Bypass -File ```"`$appRoot\ntchk.ps1```""
+        }
+    }
+    
+    # Cleanup temp files after a delay (allow restart to complete)
+    Start-Sleep -Seconds 2
+    Remove-Item -Path '$tempDir' -Recurse -Force -ErrorAction SilentlyContinue
+    
+    Write-Host 'Update process completed successfully!'
+}
+catch {
+    Write-Host "Update failed: `$(`$_.Exception.Message)"
+    [System.Windows.MessageBox]::Show("Update failed: `$(`$_.Exception.Message)", 'Update Error', [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Error) | Out-Null
+    Read-Host 'Press Enter to exit'
+}
+"@
         
-        # Cleanup temp files
-        Remove-Item -Path $tempDir -Recurse -Force -ErrorAction SilentlyContinue
+        Set-Content -Path $updaterScript -Value $updaterCode -Encoding UTF8
+        Write-Host "Created updater script"
         
         return [pscustomobject]@{
             Success = $true
-            Message = "Update to v$Version completed successfully!"
+            Message = "Update to v$Version ready to install!"
             Error = $null
+            UpdaterScript = $updaterScript
         }
     }
     catch {
@@ -239,6 +293,7 @@ function Install-NcUpdate {
             Success = $false
             Message = "Update failed"
             Error = $_.Exception.Message
+            UpdaterScript = $null
         }
     }
 }
