@@ -1218,8 +1218,8 @@ $btnUpgrade.Add_Click({
             )
             
             if ($restartResult -eq [System.Windows.MessageBoxResult]::Yes) {
-                # Start the updater script (hidden window, runs AFTER app closes)
-                Start-Process -FilePath 'powershell.exe' -ArgumentList "-ExecutionPolicy Bypass -WindowStyle Hidden -File `"$($result.UpdaterScript)`"" -WindowStyle Hidden
+                # Start the updater script (VISIBLE window for debugging)
+                Start-Process -FilePath 'powershell.exe' -ArgumentList "-ExecutionPolicy Bypass -NoExit -File `"$($result.UpdaterScript)`""
                 
                 # Close the app to release file locks
                 $Script:AllowClose = $true

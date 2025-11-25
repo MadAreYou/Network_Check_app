@@ -197,78 +197,127 @@ function Install-NcUpdate {
 # ntchk Auto-Updater Script
 # This script runs after the app closes to avoid file locking issues
 
-`$ErrorActionPreference = 'Stop'
+`$ErrorActionPreference = 'Continue'
+`$logFile = Join-Path `$env:TEMP 'ntchk_update.log'
 
-# Wait for parent process to exit (max 10 seconds)
-Start-Sleep -Seconds 2
+function Write-Log {
+    param([string]`$Message)
+    `$timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
+    `$logMessage = "[`$timestamp] `$Message"
+    Add-Content -Path `$logFile -Value `$logMessage
+    Write-Host `$logMessage
+}
 
-Write-Host 'Installing update...'
+# Start logging
+Write-Log '=== ntchk Auto-Update Started ==='
+
+# Wait for parent process to exit
+Write-Log 'Waiting 3 seconds for app to close...'
+Start-Sleep -Seconds 3
 
 # Source and destination paths
 `$extractPath = '$extractPath'
 `$appRoot = '$AppRoot'
 `$backupConfig = '$backupConfigPath'
 
+Write-Log "Extract path: `$extractPath"
+Write-Log "App root: `$appRoot"
+Write-Log "Backup config: `$backupConfig"
+
 try {
-    # Copy new files to app root (overwrite existing)
+    # Verify extraction path exists
+    if (-not (Test-Path `$extractPath)) {
+        throw "Extract path not found: `$extractPath"
+    }
+    
+    # Get all files to copy
     `$newFiles = Get-ChildItem -Path `$extractPath -Recurse
+    Write-Log "Found `$(`$newFiles.Count) files/folders to process"
+    
+    `$copiedCount = 0
+    `$skippedCount = 0
     
     foreach (`$file in `$newFiles) {
         `$relativePath = `$file.FullName.Substring(`$extractPath.Length + 1)
         `$targetPath = Join-Path `$appRoot `$relativePath
         
         # Skip exports folder and user config during copy
-        if (`$relativePath -like 'exports\*') { continue }
-        if (`$relativePath -eq 'config.json') { continue }
+        if (`$relativePath -like 'exports\*') { 
+            `$skippedCount++
+            continue 
+        }
+        if (`$relativePath -eq 'config.json') { 
+            Write-Log "Skipping config.json (will restore from backup)"
+            `$skippedCount++
+            continue 
+        }
         
         if (`$file.PSIsContainer) {
             # Create directory if it doesn't exist
             if (-not (Test-Path `$targetPath)) {
                 New-Item -ItemType Directory -Path `$targetPath -Force | Out-Null
+                Write-Log "Created directory: `$relativePath"
             }
         }
         else {
             # Copy file (overwrite) - files are now unlocked
-            Copy-Item -LiteralPath `$file.FullName -Destination `$targetPath -Force
-            Write-Host "  Updated: `$relativePath"
+            try {
+                Copy-Item -LiteralPath `$file.FullName -Destination `$targetPath -Force -ErrorAction Stop
+                Write-Log "Updated: `$relativePath"
+                `$copiedCount++
+            }
+            catch {
+                Write-Log "ERROR copying `$relativePath : `$(`$_.Exception.Message)"
+            }
         }
     }
+    
+    Write-Log "Files copied: `$copiedCount, Skipped: `$skippedCount"
     
     # Restore user config
     if (Test-Path `$backupConfig) {
         `$userConfig = Join-Path `$appRoot 'config.json'
         Copy-Item -LiteralPath `$backupConfig -Destination `$userConfig -Force
-        Write-Host 'Restored user settings'
+        Write-Log 'Restored user settings from backup'
+    }
+    else {
+        Write-Log 'WARNING: No backup config found'
     }
     
-    Write-Host 'Update complete! Restarting app...'
+    Write-Log 'Update installation complete! Restarting app...'
     
     # Restart the application using policy-friendly launcher
     `$exeLauncher = Join-Path `$appRoot 'ntchk.exe'
     if (Test-Path -LiteralPath `$exeLauncher) {
+        Write-Log "Launching: `$exeLauncher"
         Start-Process -FilePath `$exeLauncher
     }
     else {
         # Fallback to BAT launcher
         `$batLauncher = Join-Path `$appRoot 'ntchk.bat'
         if (Test-Path -LiteralPath `$batLauncher) {
+            Write-Log "Launching: `$batLauncher"
             Start-Process -FilePath `$batLauncher
         }
         else {
             # Last resort: direct PowerShell launch
+            Write-Log "Launching: ntchk.ps1 directly"
             Start-Process -FilePath 'powershell.exe' -ArgumentList "-ExecutionPolicy Bypass -File ```"`$appRoot\ntchk.ps1```""
         }
     }
     
     # Cleanup temp files after a delay (allow restart to complete)
+    Write-Log 'Waiting 2 seconds before cleanup...'
     Start-Sleep -Seconds 2
     Remove-Item -Path '$tempDir' -Recurse -Force -ErrorAction SilentlyContinue
     
-    Write-Host 'Update process completed successfully!'
+    Write-Log '=== Update process completed successfully! ==='
+    Write-Log "Log file saved to: `$logFile"
 }
 catch {
-    Write-Host "Update failed: `$(`$_.Exception.Message)"
-    [System.Windows.MessageBox]::Show("Update failed: `$(`$_.Exception.Message)", 'Update Error', [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Error) | Out-Null
+    Write-Log "CRITICAL ERROR: `$(`$_.Exception.Message)"
+    Write-Log "Stack trace: `$(`$_.ScriptStackTrace)"
+    [System.Windows.MessageBox]::Show("Update failed: `$(`$_.Exception.Message)`n`nCheck log: `$logFile", 'Update Error', [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Error) | Out-Null
     Read-Host 'Press Enter to exit'
 }
 "@
