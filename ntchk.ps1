@@ -1203,45 +1203,32 @@ $btnUpgrade.Add_Click({
         $btnLater.IsEnabled = $false
         $lblUpdateStatus.Text = "Downloading update..."
         
-        # Install update
+        # Install update (downloads and prepares updater script)
         $result = Install-NcUpdate -AppRoot $Script:AppRoot -DownloadUrl $updateInfo.ReleaseInfo.DownloadUrl -Version $updateInfo.LatestVersion
         
         if ($result.Success) {
-            $lblUpdateStatus.Text = "Update installed successfully!"
+            $lblUpdateStatus.Text = "Update ready to install!"
             
-            # Ask to restart
+            # Ask to install and restart
             $restartResult = [System.Windows.MessageBox]::Show(
-                "Update to v$($updateInfo.LatestVersion) installed successfully!`n`nThe application needs to restart to use the new version.`n`nRestart now?",
-                'Update Complete',
+                "Update to v$($updateInfo.LatestVersion) has been downloaded!`n`nThe application will close, install the update, and restart automatically.`n`nContinue?",
+                'Ready to Install',
                 [System.Windows.MessageBoxButton]::YesNo,
                 [System.Windows.MessageBoxImage]::Information
             )
             
             if ($restartResult -eq [System.Windows.MessageBoxResult]::Yes) {
-                # Restart the application using policy-friendly launcher
+                # Start the updater script (hidden window, runs AFTER app closes)
+                Start-Process -FilePath 'powershell.exe' -ArgumentList "-ExecutionPolicy Bypass -WindowStyle Hidden -File `"$($result.UpdaterScript)`"" -WindowStyle Hidden
+                
+                # Close the app to release file locks
                 $Script:AllowClose = $true
-                
-                # Check if EXE launcher exists, use it for hidden restart
-                $exeLauncher = Join-Path $Script:AppRoot 'ntchk.exe'
-                if (Test-Path -LiteralPath $exeLauncher) {
-                    Start-Process -FilePath $exeLauncher -WindowStyle Hidden
-                }
-                else {
-                    # Fallback to BAT launcher
-                    $batLauncher = Join-Path $Script:AppRoot 'ntchk.bat'
-                    if (Test-Path -LiteralPath $batLauncher) {
-                        Start-Process -FilePath $batLauncher -WindowStyle Hidden
-                    }
-                    else {
-                        # Last resort: direct PowerShell launch
-                        Start-Process -FilePath 'powershell.exe' -ArgumentList "-ExecutionPolicy Bypass -WindowStyle Hidden -File `"$Script:AppRoot\ntchk.ps1`"" -WindowStyle Hidden
-                    }
-                }
-                
                 $window.Close()
             }
             else {
                 $updateOverlay.Visibility = 'Collapsed'
+                $btnUpgrade.IsEnabled = $true
+                $btnLater.IsEnabled = $true
             }
         }
         else {
