@@ -123,6 +123,14 @@ $btnCancelTrace   = Get-Control 'btnCancelTrace'
 $spinnerTrace     = Get-Control 'spinnerTrace'
 $lblTraceStatus   = Get-Control 'lblTraceStatus'
 $rotateTrace      = Get-Control 'rotateTrace'
+$txtPortScanTarget = Get-Control 'txtPortScanTarget'
+$txtPortScanPlaceholder = Get-Control 'txtPortScanPlaceholder'
+$txtPortRange     = Get-Control 'txtPortRange'
+$btnRunPortScan   = Get-Control 'btnRunPortScan'
+$btnCancelPortScan = Get-Control 'btnCancelPortScan'
+$spinnerPortScan  = Get-Control 'spinnerPortScan'
+$lblPortScanStatus = Get-Control 'lblPortScanStatus'
+$rotatePortScan   = Get-Control 'rotatePortScan'
 $btnFlushDNS      = Get-Control 'btnFlushDNS'
 $btnReleaseRenew  = Get-Control 'btnReleaseRenew'
 $btnWinsockReset  = Get-Control 'btnWinsockReset'
@@ -327,7 +335,50 @@ $diagSpinnerTimer.add_Tick({
     $rotatePing.Angle = $Script:DiagSpinnerAngle
     $rotateLookup.Angle = $Script:DiagSpinnerAngle
     $rotateTrace.Angle = $Script:DiagSpinnerAngle
+    $rotatePortScan.Angle = $Script:DiagSpinnerAngle
 })
+
+# Animated dots timer for output messages (cycles through . .. ... )
+$Script:AnimatedDotsCount = 0
+$Script:BaseMessage = ''
+$Script:SpeedTestOngoingShown = $false
+$animatedDotsTimer = New-Object System.Windows.Threading.DispatcherTimer
+$animatedDotsTimer.Interval = [TimeSpan]::FromMilliseconds(500)
+$animatedDotsTimer.add_Tick({
+    $Script:AnimatedDotsCount = ($Script:AnimatedDotsCount + 1) % 4
+    $dots = '.' * $(if ($Script:AnimatedDotsCount -eq 0) { 1 } else { $Script:AnimatedDotsCount })
+    
+    # Update output text based on current operation
+    if ($Script:DiagJob -and $txtDiagOutput) {
+        $txtDiagOutput.Text = $Script:BaseMessage + $dots
+    }
+    if ($Script:SpeedJob -and $txtSpeedLog -and $Script:SpeedTestOngoingShown) {
+        # Find and update the last "Test ongoing" line
+        $lines = $txtSpeedLog.Text -split "`r`n"
+        for ($i = $lines.Count - 1; $i -ge 0; $i--) {
+            if ($lines[$i] -match '^Test ongoing') {
+                $lines[$i] = "Test ongoing$dots"
+                $txtSpeedLog.Text = $lines -join "`r`n"
+                break
+            }
+        }
+    }
+})
+
+# Port Scan placeholder handler
+$txtPortScanTarget.Add_TextChanged({
+    if ([string]::IsNullOrWhiteSpace($txtPortScanTarget.Text)) {
+        $txtPortScanPlaceholder.Visibility = 'Visible'
+    } else {
+        $txtPortScanPlaceholder.Visibility = 'Collapsed'
+    }
+})
+# Initialize placeholder visibility
+if ([string]::IsNullOrWhiteSpace($txtPortScanTarget.Text)) {
+    $txtPortScanPlaceholder.Visibility = 'Visible'
+} else {
+    $txtPortScanPlaceholder.Visibility = 'Collapsed'
+}
 
 # Network Info spinner timer
 $netInfoSpinnerTimer = New-Object System.Windows.Threading.DispatcherTimer
@@ -568,11 +619,14 @@ $jobMonitor.add_Tick({
                 $stage = $r.Data.Stage
                 switch ($stage) {
                     'download' { 
-                        if ($lblDownloadSpinner.Visibility -eq 'Collapsed') {
+                        if (-not $Script:SpeedTestOngoingShown) {
                             $lblDownloadSpinner.Visibility = 'Visible'
                             $lblDownloadStatus.Visibility = 'Visible'
-                            $txtSpeedLog.AppendText("Test ongoing...`r`n")
+                            $lblDownloadStatus.Text = 'Testing'
+                            $txtSpeedLog.AppendText("Test ongoing.`r`n")
                             $txtSpeedLog.ScrollToEnd()
+                            $Script:SpeedTestOngoingShown = $true
+                            $animatedDotsTimer.Start()
                         }
                     }
                     'upload' { 
@@ -580,15 +634,17 @@ $jobMonitor.add_Tick({
                         $lblDownloadStatus.Visibility = 'Collapsed'
                         $lblUploadSpinner.Visibility = 'Visible'
                         $lblUploadStatus.Visibility = 'Visible'
+                        $lblUploadStatus.Text = 'Testing'
                     }
                 }
             }
             'complete' {
-                # Hide spinners
+                # Hide spinners and stop animated dots
                 $lblDownloadSpinner.Visibility = 'Collapsed'
                 $lblDownloadStatus.Visibility = 'Collapsed'
                 $lblUploadSpinner.Visibility = 'Collapsed'
                 $lblUploadStatus.Visibility = 'Collapsed'
+                $animatedDotsTimer.Stop()
                 
                 # Calculate duration and show completion message
                 $endTime = Get-Date
@@ -639,6 +695,7 @@ $btnRunSpeed.Add_Click({
         Reset-SpeedUi
         $Script:Settings = Get-NcSettings -AppRoot $Script:AppRoot
         Set-EngineLabel
+        $Script:SpeedTestOngoingShown = $false
         
         if ($Script:SpeedJob) { Stop-NcSpeedTest -Job $Script:SpeedJob; $Script:SpeedJob = $null }
         if (-not $Script:Settings.OoklaLicenseAccepted) {
@@ -768,8 +825,15 @@ $diagJobMonitor.add_Tick({
                     $lblTraceStatus.Visibility = 'Collapsed'
                     $btnCancelTrace.Visibility = 'Collapsed'
                 }
+                'portscan' {
+                    $btnRunPortScan.IsEnabled = $true
+                    $spinnerPortScan.Visibility = 'Collapsed'
+                    $lblPortScanStatus.Visibility = 'Collapsed'
+                    $btnCancelPortScan.Visibility = 'Collapsed'
+                }
             }
             $diagSpinnerTimer.Stop()
+            $animatedDotsTimer.Stop()
             $diagJobMonitor.Stop()
         }
         elseif ($jobState -eq 'Failed') {
@@ -799,9 +863,12 @@ $btnRunPing.Add_Click({
     $btnRunPing.IsEnabled = $false
     $spinnerPing.Visibility = 'Visible'
     $lblPingStatus.Visibility = 'Visible'
+    $lblPingStatus.Text = 'Please wait'
     $btnCancelPing.Visibility = 'Visible'
     $diagSpinnerTimer.Start()
-    $txtDiagOutput.Text = "Running ping to $target..."
+    $Script:BaseMessage = "Running ping to $target"
+    $txtDiagOutput.Text = $Script:BaseMessage + '.'
+    $animatedDotsTimer.Start()
     
     $Script:DiagType = 'ping'
     $Script:DiagJob = Start-Job -ScriptBlock {
@@ -816,9 +883,12 @@ $btnRunLookup.Add_Click({
     $btnRunLookup.IsEnabled = $false
     $spinnerLookup.Visibility = 'Visible'
     $lblLookupStatus.Visibility = 'Visible'
+    $lblLookupStatus.Text = 'Please wait'
     $btnCancelLookup.Visibility = 'Visible'
     $diagSpinnerTimer.Start()
-    $txtDiagOutput.Text = "Looking up $domain..."
+    $Script:BaseMessage = "Looking up $domain"
+    $txtDiagOutput.Text = $Script:BaseMessage + '.'
+    $animatedDotsTimer.Start()
     
     $Script:DiagType = 'lookup'
     $Script:DiagJob = Start-Job -ScriptBlock {
@@ -850,9 +920,12 @@ $btnRunTrace.Add_Click({
     $btnRunTrace.IsEnabled = $false
     $spinnerTrace.Visibility = 'Visible'
     $lblTraceStatus.Visibility = 'Visible'
+    $lblTraceStatus.Text = 'Tracing (may take a few minutes)'
     $btnCancelTrace.Visibility = 'Visible'
     $diagSpinnerTimer.Start()
-    $txtDiagOutput.Text = "Tracing route to $target...`r`n"
+    $Script:BaseMessage = "Tracing route to $target (this may take a few minutes)"
+    $txtDiagOutput.Text = $Script:BaseMessage + '.'
+    $animatedDotsTimer.Start()
     
     $Script:DiagType = 'trace'
     $Script:DiagJob = Start-Job -ScriptBlock {
@@ -874,6 +947,7 @@ $btnCancelPing.Add_Click({
         $lblPingStatus.Visibility = 'Collapsed'
         $btnCancelPing.Visibility = 'Collapsed'
         $diagSpinnerTimer.Stop()
+        $animatedDotsTimer.Stop()
         $diagJobMonitor.Stop()
     }
 })
@@ -889,6 +963,7 @@ $btnCancelLookup.Add_Click({
         $lblLookupStatus.Visibility = 'Collapsed'
         $btnCancelLookup.Visibility = 'Collapsed'
         $diagSpinnerTimer.Stop()
+        $animatedDotsTimer.Stop()
         $diagJobMonitor.Stop()
     }
 })
@@ -904,9 +979,63 @@ $btnCancelTrace.Add_Click({
         $lblTraceStatus.Visibility = 'Collapsed'
         $btnCancelTrace.Visibility = 'Collapsed'
         $diagSpinnerTimer.Stop()
+        $animatedDotsTimer.Stop()
         $diagJobMonitor.Stop()
     }
 })
+
+$btnRunPortScan.Add_Click({
+    # Get target - require user to enter one
+    $target = $txtPortScanTarget.Text.Trim()
+    if ([string]::IsNullOrWhiteSpace($target)) {
+        [System.Windows.MessageBox]::Show('Please enter a target IP address or domain name.', 'Port Scanner', [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning) | Out-Null
+        return
+    }
+    
+    # Get ports - if empty, use common ports; otherwise use user input
+    $ports = $txtPortRange.Text.Trim()
+    $scanType = 'Custom Ports'
+    if ([string]::IsNullOrWhiteSpace($ports)) {
+        # Default: scan common ports
+        $ports = '20-25,53,80,110,143,443,445,587,993,995,1433,3306,3389,5432,5900,8080,8443'
+        $scanType = 'Common Ports'
+    }
+    
+    $btnRunPortScan.IsEnabled = $false
+    $spinnerPortScan.Visibility = 'Visible'
+    $lblPortScanStatus.Visibility = 'Visible'
+    $lblPortScanStatus.Text = 'Scanning'
+    $btnCancelPortScan.Visibility = 'Visible'
+    $diagSpinnerTimer.Start()
+    $Script:BaseMessage = "Scanning $scanType on $target ($ports) - this may take a moment"
+    $txtDiagOutput.Text = $Script:BaseMessage + '.'
+    $animatedDotsTimer.Start()
+    
+    $Script:DiagType = 'portscan'
+    $Script:DiagJob = Start-Job -ScriptBlock {
+        param($t, $p, $scriptPath)
+        . $scriptPath
+        Invoke-NcPortScan -Target $t -PortRange $p -Timeout 1000
+    } -ArgumentList $target, $ports, (Join-Path $PSScriptRoot 'src\Diagnostics.ps1')
+    $diagJobMonitor.Start()
+})
+
+$btnCancelPortScan.Add_Click({
+    if ($Script:DiagJob -and $Script:DiagType -eq 'portscan') {
+        Stop-Job -Job $Script:DiagJob
+        Remove-Job -Job $Script:DiagJob -Force
+        $Script:DiagJob = $null
+        $txtDiagOutput.Text = "Port scan cancelled by user."
+        $btnRunPortScan.IsEnabled = $true
+        $spinnerPortScan.Visibility = 'Collapsed'
+        $lblPortScanStatus.Visibility = 'Collapsed'
+        $btnCancelPortScan.Visibility = 'Collapsed'
+        $diagSpinnerTimer.Stop()
+        $animatedDotsTimer.Stop()
+        $diagJobMonitor.Stop()
+    }
+})
+
 $btnFlushDNS.Add_Click({ $txtDiagOutput.Text = Invoke-NcRepair -Action 'FlushDNS' })
 $btnReleaseRenew.Add_Click({ $txtDiagOutput.Text = Invoke-NcRepair -Action 'ReleaseRenew' })
 $btnWinsockReset.Add_Click({ $txtDiagOutput.Text = Invoke-NcRepair -Action 'WinsockReset' })

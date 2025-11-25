@@ -220,6 +220,7 @@ Run a speed test and watch log output here. Configure Ookla Speedtest CLI path i
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
           </Grid.RowDefinitions>
@@ -281,16 +282,42 @@ Run a speed test and watch log output here. Configure Ookla Speedtest CLI path i
             <Button x:Name="btnCancelTrace" Content="Cancel" Width="70" Visibility="Collapsed" Margin="6,0,0,0"/>
           </StackPanel>
 
-          <WrapPanel Grid.Row="3" Margin="0,0,0,8">
+          <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,0,0,8">
+            <TextBlock Text="Port Scan:" VerticalAlignment="Center" Width="60"/>
+            <Grid Width="160" Margin="0,0,8,0">
+              <TextBox x:Name="txtPortScanTarget" Background="Transparent"/>
+              <TextBlock x:Name="txtPortScanPlaceholder" Text="example.com or 192.168.0.1" Foreground="LightGray" IsHitTestVisible="False" Padding="2,2,0,0" VerticalAlignment="Center"/>
+            </Grid>
+            <TextBlock Text="Ports:" VerticalAlignment="Center" Margin="0,0,6,0"/>
+            <TextBox x:Name="txtPortRange" Width="140" Text="" Margin="0,0,8,0" ToolTip="Enter ports (e.g., 80,443 or 1-1024). Leave empty for common ports scan."/>
+            <Button x:Name="btnRunPortScan" Content="Scan" Width="80"/>
+            <Viewbox x:Name="spinnerPortScan" Width="16" Height="16" Visibility="Collapsed" Margin="8,0,0,0">
+              <Canvas Width="24" Height="24">
+                <Canvas.RenderTransform>
+                  <RotateTransform x:Name="rotatePortScan" CenterX="12" CenterY="12"/>
+                </Canvas.RenderTransform>
+                <Path Data="M12,2 A10,10 0 0,1 22,12" Stroke="LimeGreen" StrokeThickness="3"/>
+                <Path Data="M22,12 A10,10 0 0,1 12,22" Stroke="LimeGreen" StrokeThickness="3" Opacity="0.6"/>
+                <Path Data="M12,22 A10,10 0 0,1 2,12" Stroke="LimeGreen" StrokeThickness="3" Opacity="0.3"/>
+                <Path Data="M2,12 A10,10 0 0,1 12,2" Stroke="LimeGreen" StrokeThickness="3" Opacity="0.1"/>
+              </Canvas>
+            </Viewbox>
+            <TextBlock x:Name="lblPortScanStatus" Text="Scanning..." Foreground="Gray" FontStyle="Italic" Visibility="Collapsed" Margin="6,0,0,0" VerticalAlignment="Center"/>
+            <Button x:Name="btnCancelPortScan" Content="Cancel" Width="70" Visibility="Collapsed" Margin="6,0,0,0"/>
+          </StackPanel>
+
+          <WrapPanel Grid.Row="4" Margin="0,0,0,12">
             <Button x:Name="btnFlushDNS" Content="Flush DNS" Width="120" Margin="0,0,8,8"/>
             <Button x:Name="btnReleaseRenew" Content="Release/Renew" Width="120" Margin="0,0,8,8"/>
             <Button x:Name="btnWinsockReset" Content="Winsock Reset" Width="120" Margin="0,0,8,8"/>
             <Button x:Name="btnClearARP" Content="Clear ARP" Width="120" Margin="0,0,8,8"/>
           </WrapPanel>
 
-          <TextBox Grid.Row="4" x:Name="txtDiagOutput" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" AcceptsReturn="True" TextWrapping="NoWrap"/>
+          <Border Grid.Row="5" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="4" Padding="4">
+            <TextBox x:Name="txtDiagOutput" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" AcceptsReturn="True" TextWrapping="NoWrap" BorderThickness="0"/>
+          </Border>
 
-          <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
+          <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
             <Button x:Name="btnCopyDiag" Content="Copy" Width="90" Margin="0,0,8,0"/>
             <Button x:Name="btnExportDiag" Content="Export" Width="90"/>
           </StackPanel>
