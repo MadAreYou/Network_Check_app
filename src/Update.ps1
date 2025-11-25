@@ -21,7 +21,7 @@ function Get-NcCurrentVersion {
     }
     
     # Fallback: Return hardcoded version (for portable releases)
-    return "1.0.3"
+    return "1.0.4"
 }
 
 function Get-NcLatestRelease {
