@@ -59,6 +59,13 @@ Write-Host "[3/6] Copying application files..." -ForegroundColor Yellow
 Copy-Item (Join-Path $ProjectRoot $Config.MainScript) -Destination $TempBuildFolder
 Write-Host "      + $($Config.MainScript)" -ForegroundColor Gray
 
+# Copy version.txt (for portable version detection)
+$VersionFilePath = Join-Path $ProjectRoot 'version.txt'
+if (Test-Path $VersionFilePath) {
+    Copy-Item $VersionFilePath -Destination $TempBuildFolder
+    Write-Host "      + version.txt" -ForegroundColor Gray
+}
+
 # Copy speedtest.exe if exists
 $SpeedTestPath = Join-Path $ProjectRoot 'speedtest.exe'
 if (Test-Path $SpeedTestPath) {
