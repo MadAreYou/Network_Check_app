@@ -1,5 +1,36 @@
 # ntchk - Version History
 
+## Version 1.0.5 (2025-11-25) - **Auto-Update Fix (Portable Mode)**
+
+### 🔧 Critical Fixes
+
+#### ✅ Fixed Auto-Update Mechanism
+- **Portable Update System** - All update files stay in app folder
+  - Updates now download to `extracted/` folder in app directory (not %TEMP%)
+  - Two-stage update: Download → Close app → Updater script copies files → Restart
+  - Fixes infinite update loop caused by file locking issues
+  - No more failed updates due to locked .ps1 files
+
+- **Updater Script Improvements**
+  - Runs in hidden window (no visible PowerShell console)
+  - Waits 3 seconds for app to fully close before copying files
+  - Automatically preserves `config.json` and `exports/*` folder
+  - Self-destructs after successful update
+  - Creates detailed logs: `upgrade-debug.log` and `update.log`
+
+- **Fully Portable**
+  - No hardcoded paths - works from any folder location
+  - No dependencies on Windows TEMP directories
+  - Safe for network drives and USB installations
+  - All paths dynamically resolved using `$AppRoot` parameter
+
+### 🧹 Code Cleanup
+- Removed debug message boxes from update process
+- Cleaner error messages with log file locations
+- Improved user experience during updates
+
+---
+
 ## Version 1.0.4 (2025-11-25) - **Port Scanner & UI Enhancements**
 
 ### 🎯 Major Features
