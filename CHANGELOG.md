@@ -1,5 +1,109 @@
 # ntchk - Version History
 
+## Version 1.0.4 (2025-11-25) - **Port Scanner & UI Enhancements**
+
+### 🎯 Major Features
+
+#### 🔍 TCP Port Scanner - New Diagnostics Tool
+- **Real TCP Connect Scanning** - Live port connectivity testing
+  - Genuine TCP connection attempts via System.Net.Sockets.TcpClient
+  - No simulation - actual network port probing (same technique as `nmap -sT`)
+  - 1000ms timeout per port for responsive scanning
+  - No admin rights required (uses TCP connect method)
+  - Asynchronous job execution with real-time progress
+
+- **Flexible Port Input Formats**
+  - Single ports: `80` or `443`
+  - Port lists: `80,443,3389,8080`
+  - Port ranges: `1-1024` or `20-25`
+  - Mixed format: `20-25,80,443,3306,8080`
+  - Smart defaults: 18 common ports when input is empty
+  - Safety limit: Maximum 5000 ports per scan
+
+- **Service Name Detection**
+  - Automatic mapping for 24+ common ports
+  - Identifies services: HTTP, HTTPS, SSH, RDP, FTP, SMTP, DNS, MySQL, PostgreSQL, etc.
+  - Clear output format: `Port 80: OPEN (HTTP)`
+
+- **Comprehensive Results**
+  - Open/Closed/Filtered port statistics
+  - Detailed scan summary with counts
+  - Only shows open ports + first/last scanned for clean output
+  - Export-ready format
+
+### ✨ UI/UX Improvements
+
+#### 📐 Fixed Diagnostics Tab Layout
+- **7-row Grid Structure** - Proper vertical spacing
+  - Row assignments prevent button displacement
+  - Output area (Row 5) with Height="*" for scrolling
+  - Fixed-height rows for controls and buttons
+  - Border wrapper with rounded corners (CornerRadius="4")
+
+- **Placeholder Text** - User-friendly input guidance
+  - Shows "example.com or 192.168.0.1" in port scan target field
+  - Light gray, non-intrusive styling
+  - Automatically hides when user starts typing
+  - Grid overlay technique (IsHitTestVisible="False")
+
+#### 🎬 Animated Progress Indicators
+- **Three-Dot Animation** - Visual feedback during operations
+  - Cycling pattern: `.` → `..` → `...` → repeat
+  - 500ms interval (DispatcherTimer)
+  - Applied to diagnostic output and speed test log
+  - Smooth, non-intrusive visual cue
+
+- **Optimized Messages** - Reduced output flooding
+  - Single "Test ongoing" message with animated dots
+  - Shows scanned port numbers in output: `(80,443,3389) - this may take a moment`
+  - Clean, non-repetitive progress updates
+  - Backward text search to update existing lines
+
+### 🛠️ Technical Implementation
+
+#### Port Scanner Architecture
+- **Invoke-NcPortScan** - Core scanning function
+  - TCP connect scan with async timeout handling
+  - Port range parsing and validation
+  - Service name mapping integration
+  - Comprehensive error handling
+
+- **Get-NcServiceName** - Port-to-service mapping
+  - 24+ common port definitions
+  - FTP (20-21), SSH (22), SMTP (25), DNS (53)
+  - HTTP (80), POP3 (110), IMAP (143), HTTPS (443)
+  - SMB (445), MySQL (3306), PostgreSQL (5432), RDP (3389)
+  - And more...
+
+#### Event Handlers & State Management
+- **Port scan click handler** - Input validation and job execution
+  - Domain/IP validation
+  - Port range format checking
+  - Animated message with port numbers
+  - Spinner activation during scan
+
+- **Placeholder visibility handler** - TextChanged event
+  - Shows/hides placeholder based on input
+  - Trim() validation for whitespace
+  - Clean UX without pre-filled artifacts
+
+- **Animated dots timer** - Global progress indicator
+  - Updates txtDiagOutput and txtSpeedLog
+  - Cycles through dot states
+  - Flag-based message management ($Script:SpeedTestOngoingShown)
+
+### 📦 Build & Versioning
+- Updated Build-Config.json to version 1.0.4
+- Updated README.md version badge
+- Created ntchk-v1.0.4-Portable.zip release package
+
+### 🔄 Compatibility
+- All existing features preserved (Speed Test, Network Info, Diagnostics)
+- Settings and configuration backward compatible
+- No breaking changes
+
+---
+
 ## Version 1.0.3 (2025-11-21) - **Policy-Friendly Edition**
 
 ### 🛡️ Major Changes - Enterprise Security Compliance
