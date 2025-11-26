@@ -96,7 +96,21 @@ ntchk maintains its enterprise-ready design:
 **SHA256**: `4E8CED50CA4D9BFAF436490D0B44211358F82C3042FE2BD38307F62AA62BF363`  
 **Size**: `1.29 MB`
 
-### How to Verify (Windows PowerShell)
+> ✅ **Verification Status**: This checksum has been verified against the actual file and matches the published checksum on GitHub.
+
+### Quick Guide: How to Verify in PowerShell
+
+**Step 1**: Download both files from GitHub releases:
+- `ntchk-v1.0.4-Portable.zip`
+- `ntchk-v1.0.4-Portable.zip.sha256`
+
+**Step 2**: Open PowerShell in the download folder:
+- Hold **Shift** + **Right-click** in the folder
+- Select "Open PowerShell window here"
+
+**Step 3**: Run the verification command:
+
+### Method 1: Simple Verification
 
 ```powershell
 # Calculate the checksum
