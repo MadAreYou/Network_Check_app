@@ -110,6 +110,65 @@ ntchk-v1.0.3-Portable.zip
 
 ---
 
+## 🔐 File Verification
+
+**Verify your download integrity using SHA256 checksums:**
+
+**File**: `ntchk-v1.0.3-Portable.zip`  
+**SHA256**: `E604844202CADFCE2F1B2485A8C20BA013A9C2CF1ABE124EC7BF4717BCD7CB61`  
+**Size**: `1.29 MB`
+
+### How to Verify (Windows PowerShell)
+
+```powershell
+# Calculate the checksum
+Get-FileHash .\ntchk-v1.0.3-Portable.zip -Algorithm SHA256
+
+# Compare with the checksum above
+```
+
+The hash should match exactly. If it doesn't, **do not run the file** - re-download from the official source.
+
+### Alternative Verification
+
+You can also verify using the included `.sha256` file:
+
+```powershell
+# Read expected checksum
+$expected = (Get-Content .\ntchk-v1.0.3-Portable.zip.sha256).Trim()
+
+# Calculate actual checksum
+$actual = (Get-FileHash .\ntchk-v1.0.3-Portable.zip -Algorithm SHA256).Hash
+
+# Compare
+if ($expected -eq $actual) {
+    Write-Host "✓ Checksum verified - file is authentic" -ForegroundColor Green
+} else {
+    Write-Host "✗ Checksum mismatch - do not use this file!" -ForegroundColor Red
+}
+```
+
+### Verify Against GitHub Release
+
+Verify the downloaded file directly from GitHub:
+
+```powershell
+# Download checksum from GitHub release
+$githubHash = (Invoke-WebRequest -Uri "https://github.com/MadAreYou/Network_Check_app/releases/download/v1.0.3/ntchk-v1.0.3-Portable.zip.sha256" -UseBasicParsing).Content.Trim()
+
+# Calculate local file checksum
+$localHash = (Get-FileHash .\ntchk-v1.0.3-Portable.zip -Algorithm SHA256).Hash
+
+# Compare
+if ($githubHash -eq $localHash) {
+    Write-Host "✓ File matches GitHub release - verified authentic" -ForegroundColor Green
+} else {
+    Write-Host "✗ File does not match GitHub release!" -ForegroundColor Red
+}
+```
+
+---
+
 ## 🔄 Upgrade Instructions
 
 ### From v1.0.2 or Earlier
