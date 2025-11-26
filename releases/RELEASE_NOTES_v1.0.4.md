@@ -1,7 +1,29 @@
 # ntchk v1.0.4 - Port Scanner & UI Enhancements 🔍
 
-**Release Date**: November 25, 2025  
-**Download**: [ntchk-v1.0.4-Portable.zip](https://github.com/MadAreYou/Network_Check_app/releases/tag/v1.0.4)
+**Release Date**: November 25, 2025
+
+## 📥 Download & Install
+
+### 📦 Release Assets (2 files required)
+
+| File | Description | Size |
+|------|-------------|------|
+| `ntchk-v1.0.4-Portable.zip` | Main application package | 1.29 MB |
+| `ntchk-v1.0.4-Portable.zip.sha256` | SHA256 checksum for verification | 64 bytes |
+
+**Download both files from**: [GitHub Releases v1.0.4](https://github.com/MadAreYou/Network_Check_app/releases/tag/v1.0.4)
+
+### 🔒 Security First
+
+⚠️ **Always verify the checksum before running!** See the [🔐 File Verification](#-file-verification) section below for step-by-step instructions.
+
+### 🚀 Quick Installation
+
+1. **Download** both files above from GitHub releases
+2. **Verify** the download using the `.sha256` file (see verification section)
+3. **Extract** ZIP to any folder (USB drive, network share, local drive - all supported)
+4. **Run** `ntchk.exe` (recommended) or `ntchk.bat`
+5. **Done!** No installation, no registry changes, fully portable
 
 ---
 
