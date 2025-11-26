@@ -15,7 +15,7 @@
 
 ### 🔒 Security First
 
-⚠️ **Always verify the checksum before running!** See the [🔐 File Verification](#-file-verification) section below for step-by-step instructions.
+⚠️ **Always verify the checksum before running!** See the [File Verification](#file-verification) section below for step-by-step instructions.
 
 ### 🚀 Quick Installation
 
@@ -132,7 +132,7 @@ ntchk-v1.0.3-Portable.zip
 
 ---
 
-## 🔐 File Verification
+## File Verification
 
 **Verify your download integrity using SHA256 checksums:**
 
