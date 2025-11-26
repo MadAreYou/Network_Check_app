@@ -13,7 +13,7 @@
 
 ### 🔒 Security First
 
-⚠️ **Always verify the checksum before running!** See the [File Verification](#file-verification) section below for step-by-step instructions.
+⚠️ **Always verify the checksum before running!** See the **File Verification** section below for step-by-step instructions.
 
 ### 🚀 Quick Installation
 
