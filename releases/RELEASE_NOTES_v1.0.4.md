@@ -110,7 +110,7 @@ ntchk maintains its enterprise-ready design:
 
 ---
 
-## File Verification
+## <a id="file-verification"></a>File Verification
 
 **Verify your download integrity using SHA256 checksums:**
 

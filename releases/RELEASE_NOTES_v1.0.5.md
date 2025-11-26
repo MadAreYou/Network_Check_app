@@ -127,7 +127,7 @@ All features from v1.0.4 plus the update fix:
 
 ---
 
-## File Verification
+## <a id="file-verification"></a>File Verification
 
 **Verify your download integrity using SHA256 checksums:**
 
