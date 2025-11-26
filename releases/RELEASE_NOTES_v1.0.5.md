@@ -9,7 +9,7 @@
 | `ntchk-v1.0.5-Portable.zip` | Main application package | 1.29 MB |
 | `ntchk-v1.0.5-Portable.zip.sha256` | SHA256 checksum for verification | 64 bytes |
 
-**Download both files from**: [GitHub Releases v1.0.5](https://github.com/MadAreYou/Network_Check_app/releases/tag/v1.0.5)
+**⬇️ Download both files from the Assets section below**
 
 ### 🔒 Security First
 
