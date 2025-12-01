@@ -46,11 +46,19 @@ function Get-NcLatestRelease {
     #>
     param(
         [string] $Owner = "MadAreYou",
-        [string] $Repo = "Network_Check_app"
+        [string] $Repo = "Network_Check_app",
+        [bool] $IncludePreReleases = $false
     )
     
     try {
-        $apiUrl = "https://api.github.com/repos/$Owner/$Repo/releases/latest"
+        # Determine API endpoint based on pre-release setting
+        if ($IncludePreReleases) {
+            # Get all releases (including pre-releases) and take the first one
+            $apiUrl = "https://api.github.com/repos/$Owner/$Repo/releases"
+        } else {
+            # Get only the latest stable release
+            $apiUrl = "https://api.github.com/repos/$Owner/$Repo/releases/latest"
+        }
         
         # Set TLS 1.2 for GitHub API (required for GitHub)
         try {
@@ -61,6 +69,11 @@ function Get-NcLatestRelease {
         
         # Query GitHub API
         $response = Invoke-RestMethod -Uri $apiUrl -Method Get -ErrorAction Stop -TimeoutSec 10
+        
+        # If we queried all releases, get the first one (most recent)
+        if ($IncludePreReleases -and $response -is [array]) {
+            $response = $response[0]
+        }
         
         # Extract version from tag (assumes format: v1.0.1 or 1.0.1)
         $version = $response.tag_name -replace '^v', ''
@@ -126,7 +139,23 @@ function Test-NcUpdateAvailable {
     )
     
     $currentVersion = Get-NcCurrentVersion -AppRoot $AppRoot
-    $latestRelease = Get-NcLatestRelease
+    
+    # Read AllowPreReleases setting from config
+    $allowPreReleases = $false
+    try {
+        $configPath = Join-Path $AppRoot 'config.json'
+        if (Test-Path -LiteralPath $configPath) {
+            $config = Get-Content -LiteralPath $configPath -Raw | ConvertFrom-Json
+            if ($null -ne $config.AllowPreReleases) {
+                $allowPreReleases = $config.AllowPreReleases
+            }
+        }
+    } catch {
+        # Fallback to false (stable releases only)
+        $allowPreReleases = $false
+    }
+    
+    $latestRelease = Get-NcLatestRelease -IncludePreReleases $allowPreReleases
     
     if (-not $latestRelease) {
         return [pscustomobject]@{

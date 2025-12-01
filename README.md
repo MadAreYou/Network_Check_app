@@ -258,5 +258,5 @@ This app is free and open-source. If you find it useful, consider buying me a co
 ---
 
 <div align="center">
-Made with  in PowerShell
+Made with love in PowerShell
 </div>
