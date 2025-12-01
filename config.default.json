@@ -4,5 +4,6 @@
     "AutoExportMorningCheck":  false,
     "OoklaLicenseAccepted":  false,
     "DarkMode":  false,
-    "CheckUpdatesOnStartup":  true
+    "CheckUpdatesOnStartup":  true,
+    "AllowPreReleases":  false
 }
