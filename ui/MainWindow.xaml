@@ -324,6 +324,147 @@ Run a speed test and watch log output here. Configure Ookla Speedtest CLI path i
         </Grid>
       </TabItem>
 
+      <!-- Subnet Calc Tab -->
+      <TabItem Header="Subnet Calc">
+        <TabControl Background="{DynamicResource ContentBackground}">
+
+          <!-- Subnet sub-tab -->
+          <TabItem Header="Subnet">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+              <Grid Margin="12,8,12,8">
+                <Grid.RowDefinitions>
+                  <RowDefinition Height="Auto"/>
+                  <RowDefinition Height="8"/>
+                  <RowDefinition Height="Auto"/>
+                  <RowDefinition Height="8"/>
+                  <RowDefinition Height="Auto"/>
+                  <RowDefinition Height="8"/>
+                  <RowDefinition Height="Auto"/>
+                  <RowDefinition Height="8"/>
+                  <RowDefinition Height="Auto"/>
+                  <RowDefinition Height="8"/>
+                  <RowDefinition Height="Auto"/>
+                  <RowDefinition Height="8"/>
+                  <RowDefinition Height="Auto"/>
+                  <RowDefinition Height="8"/>
+                  <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="155"/>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="16"/>
+                  <ColumnDefinition Width="155"/>
+                  <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Row 0: Network Class + First Octet Range -->
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Network Class:" FontWeight="Bold" VerticalAlignment="Center"/>
+                <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                  <RadioButton x:Name="rbSubnetClassA" Content="A" GroupName="SubnetClass" Margin="0,0,14,0"/>
+                  <RadioButton x:Name="rbSubnetClassB" Content="B" GroupName="SubnetClass" Margin="0,0,14,0"/>
+                  <RadioButton x:Name="rbSubnetClassC" Content="C" GroupName="SubnetClass" IsChecked="True"/>
+                </StackPanel>
+                <TextBlock Grid.Row="0" Grid.Column="3" Text="First Octet Range:" FontWeight="Bold" VerticalAlignment="Center"/>
+                <TextBox Grid.Row="0" Grid.Column="4" x:Name="txtSubnetFirstOctetRange" IsReadOnly="True" Text="192 - 223"/>
+
+                <!-- Row 2: IP Address + Hex IP -->
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="IP Address:" FontWeight="Bold" VerticalAlignment="Center"/>
+                <TextBox Grid.Row="2" Grid.Column="1" x:Name="txtSubnetIP" Text="192.168.0.1"/>
+                <TextBlock Grid.Row="2" Grid.Column="3" Text="Hex IP Address:" FontWeight="Bold" VerticalAlignment="Center"/>
+                <TextBox Grid.Row="2" Grid.Column="4" x:Name="txtSubnetHexIP" IsReadOnly="True"/>
+
+                <!-- Row 4: Subnet Mask + Wildcard Mask -->
+                <TextBlock Grid.Row="4" Grid.Column="0" Text="Subnet Mask:" FontWeight="Bold" VerticalAlignment="Center"/>
+                <ComboBox Grid.Row="4" Grid.Column="1" x:Name="cmbSubnetMask"/>
+                <TextBlock Grid.Row="4" Grid.Column="3" Text="Wildcard Mask:" FontWeight="Bold" VerticalAlignment="Center"/>
+                <TextBox Grid.Row="4" Grid.Column="4" x:Name="txtSubnetWildcard" IsReadOnly="True"/>
+
+                <!-- Row 6: Subnet Bits + Mask Bits -->
+                <TextBlock Grid.Row="6" Grid.Column="0" Text="Subnet Bits:" FontWeight="Bold" VerticalAlignment="Center"/>
+                <TextBox Grid.Row="6" Grid.Column="1" x:Name="txtSubnetBits" IsReadOnly="True"/>
+                <TextBlock Grid.Row="6" Grid.Column="3" Text="Mask Bits:" FontWeight="Bold" VerticalAlignment="Center"/>
+                <TextBox Grid.Row="6" Grid.Column="4" x:Name="txtSubnetMaskBits" IsReadOnly="True"/>
+
+                <!-- Row 8: Max Subnets + Hosts per Subnet -->
+                <TextBlock Grid.Row="8" Grid.Column="0" Text="Maximum Subnets:" FontWeight="Bold" VerticalAlignment="Center"/>
+                <TextBox Grid.Row="8" Grid.Column="1" x:Name="txtSubnetMaxSubnets" IsReadOnly="True"/>
+                <TextBlock Grid.Row="8" Grid.Column="3" Text="Hosts per Subnet:" FontWeight="Bold" VerticalAlignment="Center"/>
+                <TextBox Grid.Row="8" Grid.Column="4" x:Name="txtSubnetHostsPerSubnet" IsReadOnly="True"/>
+
+                <!-- Row 10: Host Address Range (full width) -->
+                <TextBlock Grid.Row="10" Grid.Column="0" Text="Host Address Range:" FontWeight="Bold" VerticalAlignment="Center"/>
+                <TextBox Grid.Row="10" Grid.Column="1" Grid.ColumnSpan="4" x:Name="txtSubnetHostRange" IsReadOnly="True"/>
+
+                <!-- Row 12: Subnet ID + Broadcast Address -->
+                <TextBlock Grid.Row="12" Grid.Column="0" Text="Subnet ID:" FontWeight="Bold" VerticalAlignment="Center"/>
+                <TextBox Grid.Row="12" Grid.Column="1" x:Name="txtSubnetID" IsReadOnly="True"/>
+                <TextBlock Grid.Row="12" Grid.Column="3" Text="Broadcast Address:" FontWeight="Bold" VerticalAlignment="Center"/>
+                <TextBox Grid.Row="12" Grid.Column="4" x:Name="txtSubnetBroadcast" IsReadOnly="True"/>
+
+                <!-- Row 14: Subnet Bitmap (full width) -->
+                <TextBlock Grid.Row="14" Grid.Column="0" Text="Subnet Bitmap:" FontWeight="Bold" VerticalAlignment="Center"/>
+                <TextBox Grid.Row="14" Grid.Column="1" Grid.ColumnSpan="4" x:Name="txtSubnetBitmap" IsReadOnly="True" FontFamily="Consolas"/>
+              </Grid>
+            </ScrollViewer>
+          </TabItem>
+
+          <!-- CIDR sub-tab -->
+          <TabItem Header="CIDR">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+              <Grid Margin="12,8,12,8">
+                <Grid.RowDefinitions>
+                  <RowDefinition Height="Auto"/>
+                  <RowDefinition Height="8"/>
+                  <RowDefinition Height="Auto"/>
+                  <RowDefinition Height="8"/>
+                  <RowDefinition Height="Auto"/>
+                  <RowDefinition Height="8"/>
+                  <RowDefinition Height="Auto"/>
+                  <RowDefinition Height="8"/>
+                  <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="155"/>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="16"/>
+                  <ColumnDefinition Width="155"/>
+                  <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Row 0: IP Address + Mask Bits -->
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="IP Address:" FontWeight="Bold" VerticalAlignment="Center"/>
+                <TextBox Grid.Row="0" Grid.Column="1" x:Name="txtCIDRIP" Text="0.0.0.0"/>
+                <TextBlock Grid.Row="0" Grid.Column="3" Text="Mask Bits:" FontWeight="Bold" VerticalAlignment="Center"/>
+                <ComboBox Grid.Row="0" Grid.Column="4" x:Name="cmbCIDRMaskBits"/>
+
+                <!-- Row 2: CIDR Netmask + Wildcard Mask -->
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="CIDR Netmask:" FontWeight="Bold" VerticalAlignment="Center"/>
+                <TextBox Grid.Row="2" Grid.Column="1" x:Name="txtCIDRNetmask" IsReadOnly="True"/>
+                <TextBlock Grid.Row="2" Grid.Column="3" Text="Wildcard Mask:" FontWeight="Bold" VerticalAlignment="Center"/>
+                <TextBox Grid.Row="2" Grid.Column="4" x:Name="txtCIDRWildcard" IsReadOnly="True"/>
+
+                <!-- Row 4: Max Subnets + Max Addresses -->
+                <TextBlock Grid.Row="4" Grid.Column="0" Text="Maximum Subnets:" FontWeight="Bold" VerticalAlignment="Center"/>
+                <TextBox Grid.Row="4" Grid.Column="1" x:Name="txtCIDRMaxSubnets" IsReadOnly="True"/>
+                <TextBlock Grid.Row="4" Grid.Column="3" Text="Maximum Addresses:" FontWeight="Bold" VerticalAlignment="Center"/>
+                <TextBox Grid.Row="4" Grid.Column="4" x:Name="txtCIDRMaxAddresses" IsReadOnly="True"/>
+
+                <!-- Row 6: CIDR Network + CIDR Notation -->
+                <TextBlock Grid.Row="6" Grid.Column="0" Text="CIDR Network:" FontWeight="Bold" VerticalAlignment="Center"/>
+                <TextBox Grid.Row="6" Grid.Column="1" x:Name="txtCIDRNetwork" IsReadOnly="True"/>
+                <TextBlock Grid.Row="6" Grid.Column="3" Text="Net: CIDR Notation:" FontWeight="Bold" VerticalAlignment="Center"/>
+                <TextBox Grid.Row="6" Grid.Column="4" x:Name="txtCIDRNotation" IsReadOnly="True"/>
+
+                <!-- Row 8: CIDR Address Range (full width) -->
+                <TextBlock Grid.Row="8" Grid.Column="0" Text="CIDR Address Range:" FontWeight="Bold" VerticalAlignment="Center"/>
+                <TextBox Grid.Row="8" Grid.Column="1" Grid.ColumnSpan="4" x:Name="txtCIDRAddressRange" IsReadOnly="True"/>
+              </Grid>
+            </ScrollViewer>
+          </TabItem>
+
+        </TabControl>
+      </TabItem>
+
       <!-- Settings Tab -->
       <TabItem Header="Settings">
         <ScrollViewer VerticalScrollBarVisibility="Auto">

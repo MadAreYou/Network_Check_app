@@ -28,6 +28,7 @@ $Script:KeepAliveUntil = [DateTime]::UtcNow.AddMinutes(3)
 . "$Script:AppRoot\src\Diagnostics.ps1"
 . "$Script:AppRoot\src\SpeedTest.ps1"
 . "$Script:AppRoot\src\Update.ps1"
+. "$Script:AppRoot\src\SubnetCalc.ps1"
 
 # Ensure export folder exists per settings
 $Script:Settings = Get-NcSettings -AppRoot $Script:AppRoot
@@ -153,6 +154,35 @@ $btnCreateShortcut = Get-Control 'btnCreateShortcut'
 $btnRemoveShortcut = Get-Control 'btnRemoveShortcut'
 $btnCheckUpdates   = Get-Control 'btnCheckUpdates'
 $lblCurrentVersion = Get-Control 'lblCurrentVersion'
+
+# Cache controls (Subnet Calc - Subnet sub-tab)
+$rbSubnetClassA           = Get-Control 'rbSubnetClassA'
+$rbSubnetClassB           = Get-Control 'rbSubnetClassB'
+$rbSubnetClassC           = Get-Control 'rbSubnetClassC'
+$txtSubnetFirstOctetRange = Get-Control 'txtSubnetFirstOctetRange'
+$txtSubnetIP              = Get-Control 'txtSubnetIP'
+$cmbSubnetMask            = Get-Control 'cmbSubnetMask'
+$txtSubnetHexIP           = Get-Control 'txtSubnetHexIP'
+$txtSubnetWildcard        = Get-Control 'txtSubnetWildcard'
+$txtSubnetBits            = Get-Control 'txtSubnetBits'
+$txtSubnetMaskBits        = Get-Control 'txtSubnetMaskBits'
+$txtSubnetMaxSubnets      = Get-Control 'txtSubnetMaxSubnets'
+$txtSubnetHostsPerSubnet  = Get-Control 'txtSubnetHostsPerSubnet'
+$txtSubnetHostRange       = Get-Control 'txtSubnetHostRange'
+$txtSubnetID              = Get-Control 'txtSubnetID'
+$txtSubnetBroadcast       = Get-Control 'txtSubnetBroadcast'
+$txtSubnetBitmap          = Get-Control 'txtSubnetBitmap'
+
+# Cache controls (Subnet Calc - CIDR sub-tab)
+$txtCIDRIP           = Get-Control 'txtCIDRIP'
+$cmbCIDRMaskBits     = Get-Control 'cmbCIDRMaskBits'
+$txtCIDRNetmask      = Get-Control 'txtCIDRNetmask'
+$txtCIDRWildcard     = Get-Control 'txtCIDRWildcard'
+$txtCIDRMaxSubnets   = Get-Control 'txtCIDRMaxSubnets'
+$txtCIDRMaxAddresses = Get-Control 'txtCIDRMaxAddresses'
+$txtCIDRNetwork      = Get-Control 'txtCIDRNetwork'
+$txtCIDRNotation     = Get-Control 'txtCIDRNotation'
+$txtCIDRAddressRange = Get-Control 'txtCIDRAddressRange'
 
 # Cache controls (Footer & Contact)
 $lnkContact       = Get-Control 'lnkContact'
@@ -1247,6 +1277,123 @@ $btnUpgrade.Add_Click({
         $btnLater.IsEnabled = $true
     }
 })
+
+# ─── Subnet Calc Tab – event wiring ─────────────────────────────────────────
+
+# All valid subnet masks keyed by class (prefix-length → dotted-quad)
+$Script:SubnetMasksByClass = @{
+    'A' = @(
+        '255.0.0.0','255.128.0.0','255.192.0.0','255.224.0.0','255.240.0.0',
+        '255.248.0.0','255.252.0.0','255.254.0.0','255.255.0.0','255.255.128.0',
+        '255.255.192.0','255.255.224.0','255.255.240.0','255.255.248.0',
+        '255.255.252.0','255.255.254.0','255.255.255.0','255.255.255.128',
+        '255.255.255.192','255.255.255.224','255.255.255.240',
+        '255.255.255.248','255.255.255.252'
+    )
+    'B' = @(
+        '255.255.0.0','255.255.128.0','255.255.192.0','255.255.224.0',
+        '255.255.240.0','255.255.248.0','255.255.252.0','255.255.254.0',
+        '255.255.255.0','255.255.255.128','255.255.255.192','255.255.255.224',
+        '255.255.255.240','255.255.255.248','255.255.255.252'
+    )
+    'C' = @(
+        '255.255.255.0','255.255.255.128','255.255.255.192','255.255.255.224',
+        '255.255.255.240','255.255.255.248','255.255.255.252'
+    )
+}
+
+function Set-SubnetMaskComboBox {
+    param([string]$Class)
+    $cmbSubnetMask.Items.Clear()
+    foreach ($mask in $Script:SubnetMasksByClass[$Class]) {
+        $cmbSubnetMask.Items.Add($mask) | Out-Null
+    }
+    # Default selection: natural class boundary mask
+    $defaultMask = switch ($Class) { 'A' { '255.0.0.0' } 'B' { '255.255.0.0' } default { '255.255.255.0' } }
+    $cmbSubnetMask.SelectedItem = $defaultMask
+}
+
+function Update-SubnetCalcUI {
+    $ip    = $txtSubnetIP.Text.Trim()
+    $mask  = $cmbSubnetMask.SelectedItem
+    # Use the tracked class variable instead of reading nullable WPF IsChecked inside
+    # nested events (SelectionChanged fired from within Checked) which causes timing issues.
+    $class = $Script:SubnetClass
+    $txtSubnetFirstOctetRange.Text = Get-NcFirstOctetRange $class
+    if (-not $mask -or -not $ip) { return }
+    $result = Invoke-NcSubnetCalc -IPAddress $ip -SubnetMask $mask -Class $class
+    if ($result) {
+        $txtSubnetHexIP.Text           = $result.HexIP
+        $txtSubnetWildcard.Text        = $result.WildcardMask
+        $txtSubnetBits.Text            = $result.SubnetBits
+        $txtSubnetMaskBits.Text        = $result.MaskBits
+        $txtSubnetMaxSubnets.Text      = $result.MaxSubnets
+        $txtSubnetHostsPerSubnet.Text  = $result.HostsPerSubnet
+        $txtSubnetHostRange.Text       = $result.HostAddressRange
+        $txtSubnetID.Text              = $result.SubnetID
+        $txtSubnetBroadcast.Text       = $result.BroadcastAddress
+        $txtSubnetBitmap.Text          = $result.SubnetBitmap
+    }
+}
+
+function Update-CIDRCalcUI {
+    $ip   = $txtCIDRIP.Text.Trim()
+    $bits = $cmbCIDRMaskBits.SelectedItem
+    if (-not $bits -or -not $ip) { return }
+    $result = Invoke-NcCIDRCalc -IPAddress $ip -MaskBits ([int]$bits)
+    if ($result) {
+        $txtCIDRNetmask.Text      = $result.CIDRNetmask
+        $txtCIDRWildcard.Text     = $result.WildcardMask
+        $txtCIDRMaxSubnets.Text   = $result.MaxSubnets
+        $txtCIDRMaxAddresses.Text = $result.MaxAddresses
+        $txtCIDRNetwork.Text      = $result.CIDRNetwork
+        $txtCIDRNotation.Text     = $result.CIDRNotation
+        $txtCIDRAddressRange.Text = $result.AddressRange
+    }
+}
+
+# --- Populate ComboBoxes on startup ---
+# Track selected class in a Script variable to avoid nullable bool timing issues
+# when reading IsChecked inside nested WPF event handlers.
+$Script:SubnetClass = 'C'
+Set-SubnetMaskComboBox -Class 'C'
+Update-SubnetCalcUI
+
+# Populate CIDR mask bits 1-32
+for ($b = 1; $b -le 32; $b++) {
+    $cmbCIDRMaskBits.Items.Add([string]$b) | Out-Null
+}
+$cmbCIDRMaskBits.SelectedItem = '24'
+Update-CIDRCalcUI
+
+# --- Subnet tab event handlers ---
+# Set Script:SubnetClass BEFORE calling Set-SubnetMaskComboBox so that
+# Update-SubnetCalcUI (triggered by SelectionChanged inside Set-SubnetMaskComboBox)
+# already sees the correct class value.
+$rbSubnetClassA.Add_Checked({
+    $Script:SubnetClass = 'A'
+    Set-SubnetMaskComboBox -Class 'A'
+    Update-SubnetCalcUI
+})
+$rbSubnetClassB.Add_Checked({
+    $Script:SubnetClass = 'B'
+    Set-SubnetMaskComboBox -Class 'B'
+    Update-SubnetCalcUI
+})
+$rbSubnetClassC.Add_Checked({
+    $Script:SubnetClass = 'C'
+    Set-SubnetMaskComboBox -Class 'C'
+    Update-SubnetCalcUI
+})
+
+$txtSubnetIP.Add_TextChanged({ Update-SubnetCalcUI })
+$cmbSubnetMask.Add_SelectionChanged({ Update-SubnetCalcUI })
+
+# --- CIDR tab event handlers ---
+$txtCIDRIP.Add_TextChanged({ Update-CIDRCalcUI })
+$cmbCIDRMaskBits.Add_SelectionChanged({ Update-CIDRCalcUI })
+
+# ─── End Subnet Calc wiring ────────────────────────────────────────────────────
 
 # Show window (keep-alive window guard)
 try {
