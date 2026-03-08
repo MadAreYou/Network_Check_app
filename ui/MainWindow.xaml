@@ -548,7 +548,7 @@ Run a speed test and watch log output here. Configure Ookla Speedtest CLI path i
     <Border Grid.Row="2" Background="{DynamicResource FooterBackground}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0" Padding="10,6">
       <DockPanel LastChildFill="False">
         <TextBlock DockPanel.Dock="Right" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondary}" FontSize="11">
-          <Run Text="(c) 2025 Juraj Madzunkov"/>
+          <Run Text="(c) 2026 Juraj Madzunkov"/>
           <Run Text=" | "/>
           <Hyperlink x:Name="lnkContact" TextDecorations="None" Foreground="#2196F3">Contact</Hyperlink>
         </TextBlock>
