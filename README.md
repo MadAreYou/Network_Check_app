@@ -224,7 +224,7 @@ ntchk/
 <img src="screenshots/diagnostics.png" alt="Diagnostics" width="600">
 
 ### Subnet & CIDR Calculator
-<img src="screenshots/subnet-calc.png" alt="Subnet Calc" width="600">
+<img src="screenshots/subnet_calc.png" alt="Subnet Calc" width="600">
 
 ### Settings Panel
 <img src="screenshots/settings.png" alt="Settings" width="600">
