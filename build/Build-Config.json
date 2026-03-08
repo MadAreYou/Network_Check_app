@@ -1,8 +1,8 @@
 {
   "AppName": "ntchk",
-  "Version": "1.0.5",
+  "Version": "1.0.6",
   "Author": "Juraj Madzunkov",
-  "Copyright": "(c) 2025 Juraj Madzunkov",
+  "Copyright": "(c) 2026 Juraj Madzunkov",
   "Description": "ntchk - Network Toolkit (Policy-Friendly Edition)",
   "ExeName": "ntchk.exe",
   "MainScript": "ntchk.ps1",

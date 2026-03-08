@@ -1,6 +1,6 @@
 ﻿#  ntchk - Network Toolkit
 
-![Version](https://img.shields.io/badge/version-1.0.5-blue.svg)
+![Version](https://img.shields.io/badge/version-1.0.6-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![PowerShell](https://img.shields.io/badge/PowerShell-5.1%2B-blue.svg)
 ![Platform](https://img.shields.io/badge/platform-Windows-lightgrey.svg)
@@ -37,6 +37,15 @@ A modern, lightweight, **policy-friendly** Windows desktop application for compr
 - **Winsock Reset** - Fix network stack issues
 - **ARP Cache Clear** - Clear address resolution cache
 - Real-time command output display
+
+###  Subnet & CIDR Calculator
+- **Classful Subnet Calculator** — Select Network Class (A / B / C), enter IP and subnet mask for live results
+- First Octet Range, Hex IP, Wildcard Mask, Subnet/Mask Bits, Max Subnets, Hosts per Subnet
+- Host Address Range, Subnet ID, Broadcast Address, and Subnet Bitmap (visual bit breakdown)
+- **CIDR Calculator** — Enter IP and prefix length (1–32) for live classless results
+- CIDR Netmask, Wildcard Mask, Total Addresses, Usable Hosts, Network Address, CIDR Notation, Address Range
+- All fields recalculate instantly on every keystroke or dropdown change — no button required
+- Full Light and Dark mode support
 
 ###  Settings & Customization
 - **Light/Dark Mode** - Toggle between themes
@@ -95,7 +104,13 @@ cd Network_Check_app
    - Select a tool (traceroute, flush DNS, etc.)
    - View real-time output
 
-5. **Customize settings**
+5. **Calculate subnets / CIDR**
+   - Click the **Subnet Calc** tab
+   - Select Classful or CIDR mode
+   - Enter IP address and subnet mask / prefix length
+   - All fields update instantly
+
+6. **Customize settings**
    - Click the **Settings** tab
    - Configure export folder, theme, shortcuts
    - Enable/disable auto-update checks
@@ -183,6 +198,7 @@ ntchk/
     NetworkInfo.ps1       # Network information gathering
     Diagnostics.ps1       # Diagnostic tool implementations
     SpeedTest.ps1         # Speed test execution
+    SubnetCalc.ps1        # Subnet & CIDR calculator
     Update.ps1            # Auto-update functionality
  assets/
     desktop_icon.ico      # Desktop shortcut icon
@@ -206,6 +222,9 @@ ntchk/
 
 ### Diagnostics Tools (including Port Scanner)
 <img src="screenshots/diagnostics.png" alt="Diagnostics" width="600">
+
+### Subnet & CIDR Calculator
+<img src="screenshots/subnet_calc.png" alt="Subnet Calc" width="600">
 
 ### Settings Panel
 <img src="screenshots/settings.png" alt="Settings" width="600">

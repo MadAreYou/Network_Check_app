@@ -1,5 +1,37 @@
 # ntchk - Version History
 
+## Version 1.0.6 (2026-03-07) - **Subnet & CIDR Calculator**
+
+### 🎯 New Feature
+
+#### 🔢 Subnet & CIDR Calculator — New Tab
+- **New "Subnet Calc" tab** added between Diagnostics and Settings
+- Two sub-tabs: **Subnet** (classful) and **CIDR** (classless)
+
+##### Subnet Calculator
+- Network Class selector (A / B / C) with automatic mask dropdown population
+- Live calculation on every input change — no button required
+- Outputs: First Octet Range, Hex IP Address, Wildcard Mask, Subnet Bits, Mask Bits,
+  Maximum Subnets, Hosts per Subnet, Host Address Range, Subnet ID, Broadcast Address, Subnet Bitmap
+
+##### CIDR Calculator
+- IP Address + Mask Bits (1–32) dropdown
+- Live calculation on every input change
+- Outputs: CIDR Netmask, Wildcard Mask, Maximum Subnets, Maximum Addresses,
+  CIDR Network, Net: CIDR Notation, CIDR Address Range
+
+### 🛠️ Technical Implementation
+- New module `src/SubnetCalc.ps1` — pure math, no external dependencies
+- All arithmetic uses `[Math]::Floor` for correct integer truncation (avoids PowerShell banker's rounding on octet values)
+- Class selection tracked via `$Script:SubnetClass` to prevent WPF nullable bool timing issues in nested event handlers
+- Fully compatible with Light and Dark mode themes
+
+### 🔄 Compatibility
+- All existing features unchanged (Speed Test, Network Info, Diagnostics, Settings)
+- Settings and configuration backward compatible
+
+---
+
 ## Version 1.0.5 (2025-11-25) - **Auto-Update Fix (Portable Mode)**
 
 ### 🔧 Critical Fixes
